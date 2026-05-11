@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
-import { 
+import {
   Star, Edit3, MapPin, Award, Trophy, Briefcase, Zap, Search, Plus, Trash2, X, Sparkles, Flag
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { Review, AiAnalysis } from "@/types"
@@ -73,42 +73,42 @@ export default function Profile() {
 
       if (profileRow) {
         setProfile({
-          id:              profileRow.id,
-          name:            profileRow.name       || authUser?.name  || 'User',
-          email:           profileRow.email      || authUser?.email || '',
-          avatar_url:      profileRow.profile_pic || null,
-          bio:             '',
-          location:        'Global',
-          title:           'Elite Member',
-          offering:        '',
-          wanting:         '',
-          rating:          0,
-          points:          0,
+          id: profileRow.id,
+          name: profileRow.name || authUser?.name || 'User',
+          email: profileRow.email || authUser?.email || '',
+          avatar_url: profileRow.profile_pic || null,
+          bio: '',
+          location: 'Global',
+          title: 'Elite Member',
+          offering: '',
+          wanting: '',
+          rating: 0,
+          points: 0,
           completed_count: 0,
-          created_at:      profileRow.updated_at  || new Date().toISOString(),
+          created_at: profileRow.updated_at || new Date().toISOString(),
         })
       } else {
         // Fallback: use auth session data
         setProfile({
-          id:              viewUserId,
-          name:            authUser?.name       || 'User',
-          email:           authUser?.email      || '',
-          avatar_url:      authUser?.profilePic || null,
-          bio:             '',
-          location:        'Global',
-          title:           'Elite Member',
-          offering:        '',
-          wanting:         '',
-          rating:          0,
-          points:          0,
+          id: viewUserId,
+          name: authUser?.name || 'User',
+          email: authUser?.email || '',
+          avatar_url: authUser?.profilePic || null,
+          bio: '',
+          location: 'Global',
+          title: 'Elite Member',
+          offering: '',
+          wanting: '',
+          rating: 0,
+          points: 0,
           completed_count: 0,
-          created_at:      new Date().toISOString(),
+          created_at: new Date().toISOString(),
         })
       }
 
       // ── 2. Local API: AI analysis & points ───────────────────────────────
       try {
-        const aiRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/profile`)
+        const aiRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/profile`)
         const aiData = await aiRes.json()
         if (aiData?.analysis) setAiAnalysis(aiData.analysis)
         if (aiData?.points !== undefined) {
@@ -118,7 +118,7 @@ export default function Profile() {
 
       // ── 3. Local API: Reviews ────────────────────────────────────────────
       try {
-        const statusRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/reviews`)
+        const statusRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
         const reviewsData = await statusRes.json()
         if (Array.isArray(reviewsData)) setReviews(reviewsData)
       } catch { /* server may be offline */ }
@@ -126,7 +126,7 @@ export default function Profile() {
       // ── 4. Skills: local API first, fallback to Supabase ─────────────────
       let skillsFetched = false
       try {
-        const skillRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/skills`)
+        const skillRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/skills`)
         const skillData = await skillRes.json()
         if (Array.isArray(skillData) && skillData.length > 0) {
           setOfferingSkills(skillData.filter((s: UserSkill) => s.skill_type === 'offering'))
@@ -157,10 +157,10 @@ export default function Profile() {
     if (viewUserId) {
       loadProfile()
       // Fetch flag status for this user
-      fetch(`http://localhost:5000/api/users/${viewUserId}/flag-status`)
+      fetch(`https://backend-a41z.onrender.com/api/users/${viewUserId}/flag-status`)
         .then(r => r.json())
         .then(d => { if (d.level > 0) setFlagInfo(d) })
-        .catch(() => {})
+        .catch(() => { })
     }
   }, [viewUserId, loadProfile])
 
@@ -171,7 +171,7 @@ export default function Profile() {
     }
     setAddingSkill(true)
     try {
-      const url = `http://localhost:5000/api/user/${authUser.id}/skills`;
+      const url = `https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`;
       console.log("Adding skill to:", url);
       const res = await fetch(url, {
         method: "POST",
@@ -194,7 +194,7 @@ export default function Profile() {
 
   const handleDeleteSkill = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/skills/${id}`, { method: "DELETE" })
+      const res = await fetch(`https://backend-a41z.onrender.com/api/skills/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed to delete skill")
       loadProfile(true)
     } catch (err) { console.error(err) }
@@ -209,7 +209,7 @@ export default function Profile() {
 
       <main className="max-w-6xl mx-auto px-6 py-10 mt-16 space-y-8">
         {/* HERO SECTION */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-[32px] border border-border bg-card p-8 md:p-10 shadow-xl"
@@ -238,10 +238,9 @@ export default function Profile() {
                   <div className="flex items-center gap-2 mb-1">
                     <h1 className="text-4xl font-bold tracking-tight">{profile.name}</h1>
                     {flagInfo && flagInfo.level > 0 && (
-                      <span title={flagInfo.label} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border ${
-                        flagInfo.color === 'red'    ? 'bg-destructive/10 border-destructive/20 text-destructive' :
-                        flagInfo.color === 'orange' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
-                                                     'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
+                      <span title={flagInfo.label} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border ${flagInfo.color === 'red' ? 'bg-destructive/10 border-destructive/20 text-destructive' :
+                          flagInfo.color === 'orange' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
+                            'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
                         <Flag className="h-3 w-3" />{flagInfo.label}
                       </span>
                     )}
@@ -273,7 +272,7 @@ export default function Profile() {
         {/* SKILLS GRID */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Offering */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="p-8 rounded-[32px] border border-border bg-card shadow-sm hover:shadow-md transition-all"
@@ -285,8 +284,8 @@ export default function Profile() {
               {isOwnProfile && (
                 <Dialog open={showAddSkill} onOpenChange={setShowAddSkill}>
                   <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       onClick={() => { setSkillType('offering'); setShowAddSkill(true); }}
                       className="h-10 w-10 p-0 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all"
                     >
@@ -300,7 +299,7 @@ export default function Profile() {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Skill Name</label>
-                        <Input 
+                        <Input
                           value={newSkill}
                           onChange={(e) => setNewSkill(e.target.value)}
                           placeholder="e.g. Graphic Design, Java..."
@@ -322,7 +321,7 @@ export default function Profile() {
                 </Dialog>
               )}
             </div>
-            
+
             <div className="flex flex-wrap gap-3">
               {/* Manually added skills */}
               {offeringSkills.map(s => (
@@ -337,7 +336,7 @@ export default function Profile() {
                   </span>
                 </div>
               ))}
-              
+
               {/* Skills from tasks (if any and not already in manual list) */}
               {profile.offering && profile.offering.split(', ').map((skill, i) => {
                 const isManual = offeringSkills.some(s => s.skill_name.toLowerCase() === skill.toLowerCase());
@@ -358,7 +357,7 @@ export default function Profile() {
           </motion.div>
 
           {/* Wanting */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="p-8 rounded-[32px] border border-border bg-card shadow-sm hover:shadow-md transition-all"
@@ -368,8 +367,8 @@ export default function Profile() {
                 <Search className="h-6 w-6 text-amber-500" /> I'm Looking For
               </h2>
               {isOwnProfile && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => { setSkillType('wanting'); setShowAddSkill(true); }}
                   className="h-10 w-10 p-0 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all"
                 >
@@ -415,7 +414,7 @@ export default function Profile() {
 
         {/* AI INSIGHTS SECTION */}
         {aiAnalysis && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-primary/5 p-8 md:p-10"

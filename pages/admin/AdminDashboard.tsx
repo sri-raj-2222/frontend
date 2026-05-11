@@ -10,24 +10,24 @@ import { supabase } from "@/lib/supabase"
 import UserManagement from "./UserManagement"
 import ReportsPanel from "./ReportsPanel"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 // ── Status badge colours ──────────────────────────────────────────────────────
 const badge: Record<string, string> = {
-  open:       "text-blue-600 dark:text-blue-400 bg-blue-500/10",
-  active:     "text-primary bg-primary/10",
-  matched:    "text-primary bg-primary/10",
-  completed:  "text-muted-foreground bg-muted",
-  done:       "text-muted-foreground bg-muted",
-  pending:    "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10",
-  declined:   "text-destructive bg-destructive/10",
-  resolved:   "text-primary bg-primary/10",
-  disputed:   "text-destructive bg-destructive/10",
-  high:       "text-destructive font-semibold",
-  medium:     "text-yellow-600 dark:text-yellow-400 font-semibold",
-  low:        "text-muted-foreground font-semibold",
-  user:       "text-blue-600 dark:text-blue-400 bg-blue-500/10",
-  admin:      "text-primary bg-primary/10",
+  open: "text-blue-600 dark:text-blue-400 bg-blue-500/10",
+  active: "text-primary bg-primary/10",
+  matched: "text-primary bg-primary/10",
+  completed: "text-muted-foreground bg-muted",
+  done: "text-muted-foreground bg-muted",
+  pending: "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10",
+  declined: "text-destructive bg-destructive/10",
+  resolved: "text-primary bg-primary/10",
+  disputed: "text-destructive bg-destructive/10",
+  high: "text-destructive font-semibold",
+  medium: "text-yellow-600 dark:text-yellow-400 font-semibold",
+  low: "text-muted-foreground font-semibold",
+  user: "text-blue-600 dark:text-blue-400 bg-blue-500/10",
+  admin: "text-primary bg-primary/10",
 }
 
 function Badge({ v }: { v: string }) {
@@ -46,30 +46,30 @@ function Empty({ label }: { label: string }) {
 
 // ── Sidebar items ─────────────────────────────────────────────────────────────
 const sidebarItems = [
-  { icon: LayoutDashboard, label: "Overview",  id: "overview"  },
-  { icon: Users,           label: "Users",     id: "users"     },
-  { icon: Briefcase,       label: "Projects",  id: "projects"  },
-  { icon: CreditCard,      label: "Payments",  id: "payments"  },
-  { icon: Flag,            label: "Reports",   id: "reports"   },
-  { icon: BookOpen,        label: "Sessions",  id: "sessions"  },
-  { icon: Settings,        label: "Settings",  id: "settings"  },
+  { icon: LayoutDashboard, label: "Overview", id: "overview" },
+  { icon: Users, label: "Users", id: "users" },
+  { icon: Briefcase, label: "Projects", id: "projects" },
+  { icon: CreditCard, label: "Payments", id: "payments" },
+  { icon: Flag, label: "Reports", id: "reports" },
+  { icon: BookOpen, label: "Sessions", id: "sessions" },
+  { icon: Settings, label: "Settings", id: "settings" },
 ]
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
-  const navigate  = useNavigate()
-  const [sidebar, setSidebar]   = useState(true)
-  const [active,  setActive]    = useState("overview")
-  const [loading, setLoading]   = useState(true)
-  const [refresh, setRefresh]   = useState(0)
+  const navigate = useNavigate()
+  const [sidebar, setSidebar] = useState(true)
+  const [active, setActive] = useState("overview")
+  const [loading, setLoading] = useState(true)
+  const [refresh, setRefresh] = useState(0)
 
   // ── Real data states ───────────────────────────────────────────────────────
-  const [stats,    setStats]    = useState<Record<string, number>>({})
-  const [users,    setUsers]    = useState<any[]>([])
-  const [tasks,    setTasks]    = useState<any[]>([])
+  const [stats, setStats] = useState<Record<string, number>>({})
+  const [users, setUsers] = useState<any[]>([])
+  const [tasks, setTasks] = useState<any[]>([])
   const [sessions, setSessions] = useState<any[]>([])
   const [_disputes, setDisputes] = useState<any[]>([])
-  const [reviews,  setReviews]  = useState<any[]>([])
+  const [reviews, setReviews] = useState<any[]>([])
 
   const adminSession = (() => {
     try { return JSON.parse(localStorage.getItem("admin_session") || "{}") } catch { return {} }
@@ -97,9 +97,9 @@ export default function AdminDashboard() {
 
         if (statsR.status === "fulfilled") setStats(statsR.value)
         if (tasksR.status === "fulfilled") setTasks(Array.isArray(tasksR.value) ? tasksR.value : [])
-        if (sessR.status  === "fulfilled") setSessions(Array.isArray(sessR.value)  ? sessR.value  : [])
-        if (dispR.status  === "fulfilled") setDisputes(Array.isArray(dispR.value)  ? dispR.value  : [])
-        if (revR.status   === "fulfilled") setReviews(Array.isArray(revR.value)    ? revR.value   : [])
+        if (sessR.status === "fulfilled") setSessions(Array.isArray(sessR.value) ? sessR.value : [])
+        if (dispR.status === "fulfilled") setDisputes(Array.isArray(dispR.value) ? dispR.value : [])
+        if (revR.status === "fulfilled") setReviews(Array.isArray(revR.value) ? revR.value : [])
 
         // Supabase: users/profiles
         const { data: profiles } = await supabase
@@ -116,12 +116,12 @@ export default function AdminDashboard() {
 
   // ── Stat cards ─────────────────────────────────────────────────────────────
   const cards = [
-    { label: "Total Users",    value: users.length,             icon: Users    },
-    { label: "Total Tasks",    value: stats.totalTasks    ?? 0, icon: Briefcase },
-    { label: "Active Tasks",   value: stats.activeTasks   ?? 0, icon: Briefcase },
-    { label: "Live Sessions",  value: stats.activeRooms   ?? 0, icon: BookOpen  },
-    { label: "Reports",        value: stats.totalDisputes ?? 0, icon: Flag      },
-    { label: "Reviews",        value: stats.totalReviews  ?? 0, icon: CreditCard },
+    { label: "Total Users", value: users.length, icon: Users },
+    { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: Briefcase },
+    { label: "Active Tasks", value: stats.activeTasks ?? 0, icon: Briefcase },
+    { label: "Live Sessions", value: stats.activeRooms ?? 0, icon: BookOpen },
+    { label: "Reports", value: stats.totalDisputes ?? 0, icon: Flag },
+    { label: "Reviews", value: stats.totalReviews ?? 0, icon: CreditCard },
   ]
 
   // ── Table renderer ─────────────────────────────────────────────────────────
@@ -248,12 +248,10 @@ export default function AdminDashboard() {
                     transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                   />
                 )}
-                <item.icon className={`relative h-4 w-4 shrink-0 transition-colors ${
-                  active === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                }`} />
-                <span className={`relative transition-colors ${
-                  active === item.id ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'
-                }`}>{item.label}</span>
+                <item.icon className={`relative h-4 w-4 shrink-0 transition-colors ${active === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                  }`} />
+                <span className={`relative transition-colors ${active === item.id ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'
+                  }`}>{item.label}</span>
                 {/* Active left stripe */}
                 {active === item.id && (
                   <motion.div
@@ -444,11 +442,11 @@ export default function AdminDashboard() {
                       <p className="text-sm font-semibold text-muted-foreground mb-4">Quick Access</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                         {[
-                          { id: "users",    label: "Users",    Icon: Users    },
-                          { id: "projects", label: "Tasks",    Icon: Briefcase },
-                          { id: "payments", label: "Reviews",  Icon: CreditCard },
-                          { id: "reports",  label: "Reports",  Icon: Flag      },
-                          { id: "sessions", label: "Sessions", Icon: BookOpen  },
+                          { id: "users", label: "Users", Icon: Users },
+                          { id: "projects", label: "Tasks", Icon: Briefcase },
+                          { id: "payments", label: "Reviews", Icon: CreditCard },
+                          { id: "reports", label: "Reports", Icon: Flag },
+                          { id: "sessions", label: "Sessions", Icon: BookOpen },
                         ].map(({ id, label, Icon }) => (
                           <motion.button key={id} whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}
                             onClick={() => setActive(id)}

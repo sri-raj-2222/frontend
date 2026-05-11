@@ -37,11 +37,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     console.log('[SocketProvider] Initializing socket connection...');
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io('https://backend-a41z.onrender.com', {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
-    
+
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
@@ -128,7 +128,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <SocketContext.Provider value={{ socket, notifications, addNotification, removeNotification, isConnected }}>
       {children}
       <NotificationToast notifications={notifications} removeNotification={removeNotification} />
-      
+
     </SocketContext.Provider>
   );
 };

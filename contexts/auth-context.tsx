@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
-const API = 'http://localhost:5000';
+const API = 'https://backend-a41z.onrender.com';
 
 type UserRole = 'user' | 'admin' | 'moderator' | 'support';
 
@@ -51,9 +51,9 @@ function buildUserFromSession(su: SupabaseUser): User {
 // Ensures a user row exists in both `users` and `profiles` tables.
 // task_requests.requester_id has a FK → users.id, so the row must exist.
 async function ensureUserRow(su: SupabaseUser) {
-  const name  = su.user_metadata?.name || su.user_metadata?.full_name || su.email?.split('@')[0] || 'User';
+  const name = su.user_metadata?.name || su.user_metadata?.full_name || su.email?.split('@')[0] || 'User';
   const email = su.email || '';
-  const pic   = su.user_metadata?.avatar_url || su.user_metadata?.picture || null;
+  const pic = su.user_metadata?.avatar_url || su.user_metadata?.picture || null;
 
   // Upsert into `profiles` table (used for display names)
   supabase
@@ -63,7 +63,7 @@ async function ensureUserRow(su: SupabaseUser) {
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser]       = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [banInfo, setBanInfo] = useState<BanInfo | null>(null);
 
@@ -108,9 +108,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (data) {
           setUser(prev => prev ? {
             ...prev,
-            name:       data.name       || prev.name,
-            email:      data.email      || prev.email,
-            role:       (data.role as UserRole) || prev.role,
+            name: data.name || prev.name,
+            email: data.email || prev.email,
+            role: (data.role as UserRole) || prev.role,
             profilePic: data.profile_pic || prev.profilePic,
           } : prev);
         }

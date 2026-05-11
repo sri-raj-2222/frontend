@@ -2,15 +2,15 @@
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 import { ModeToggle } from "@/components/ui/mode-toggle"
-import { 
-  LogOut, 
-  User, 
-  Settings, 
-  Bell, 
-  MessageSquare, 
-  Users, 
-  Workflow, 
-  GraduationCap, 
+import {
+  LogOut,
+  User,
+  Settings,
+  Bell,
+  MessageSquare,
+  Users,
+  Workflow,
+  GraduationCap,
   BookOpen,
   ChevronRight,
   ArrowLeftRight,
@@ -55,18 +55,18 @@ export function Navbar() {
   const fetchNotifications = useCallback(async () => {
     try {
       const [expressRes, supabaseRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/notifications?user_id=${CURRENT_USER_ID}`),
+        fetch(`https://backend-a41z.onrender.com/api/notifications?user_id=${CURRENT_USER_ID}`),
         supabase
           .from('notifications')
           .select('*')
           .eq('user_id', CURRENT_USER_ID)
           .order('created_at', { ascending: false })
       ])
-      
+
       const expressData = await expressRes.json()
       const supabaseData = supabaseRes.data || []
-      
-      const combined = [...expressData, ...supabaseData].sort((a, b) => 
+
+      const combined = [...expressData, ...supabaseData].sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
 
@@ -79,7 +79,7 @@ export function Navbar() {
 
   const fetchRooms = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
       const data = await res.json()
       setRooms(data || [])
     } catch (err) {
@@ -167,7 +167,7 @@ export function Navbar() {
     try {
       if (type === 'match_request') {
         // Match request — handled by local Express
-        const res = await fetch(`http://localhost:5000/api/match-requests/${referenceId}`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status })
@@ -212,7 +212,7 @@ export function Navbar() {
           // If profiles had no name, ask local Express DB (stores names from when requests were sent)
           if (!requesterName) {
             try {
-              const nr = await fetch(`http://localhost:5000/api/user-name/${request.requester_id}`)
+              const nr = await fetch(`https://backend-a41z.onrender.com/api/user-name/${request.requester_id}`)
               if (nr.ok) { const nd = await nr.json(); requesterName = nd.name || '' }
             } catch { /* ignore */ }
           }
@@ -235,9 +235,9 @@ export function Navbar() {
               .from('chat_rooms')
               .insert({
                 task_id: String(request.task_id),
-                user_a:  user?.id,
-                user_b:  request.requester_id,
-                status:  'active'
+                user_a: user?.id,
+                user_b: request.requester_id,
+                status: 'active'
               })
               .select('id')
               .single()
@@ -246,7 +246,7 @@ export function Navbar() {
           }
 
           // 4. Sync to local Express DB + emit server-side socket to requester
-          await fetch('http://localhost:5000/api/accept-and-notify', {
+          await fetch('https://backend-a41z.onrender.com/api/accept-and-notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -273,7 +273,7 @@ export function Navbar() {
       } else {
         // Default: local Express task request (request_new type)
         const tid = taskId || 'null'
-        const res = await fetch(`http://localhost:5000/api/tasks/${tid}/requests/${referenceId}`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/tasks/${tid}/requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status })
@@ -285,7 +285,7 @@ export function Navbar() {
       }
 
       // Mark notification as read (both local and Supabase)
-      await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, { method: 'PATCH' }).catch(() => {})
+      await fetch(`https://backend-a41z.onrender.com/api/notifications/${notificationId}/read`, { method: 'PATCH' }).catch(() => { })
       void supabase.from('notifications').update({ is_read: true }).eq('id', notificationId)
       fetchNotifications()
     } catch (err) {
@@ -296,11 +296,11 @@ export function Navbar() {
   const markAllRead = async () => {
     try {
       setUnreadCount(0)
-      
+
       // Update local express notifications
       const localUnread = notifications.filter(n => !n.is_read && typeof n.id === 'string' && !n.id.includes('-'))
       localUnread.forEach(async (n) => {
-        await fetch(`http://localhost:5000/api/notifications/${n.id}/read`, { method: "PATCH" })
+        await fetch(`https://backend-a41z.onrender.com/api/notifications/${n.id}/read`, { method: "PATCH" })
       })
 
       // Update Supabase notifications
@@ -349,15 +349,15 @@ export function Navbar() {
           {/* ── App Nav: authenticated + not on landing page ── */}
           {showAppNav && (
             <div className="hidden md:flex items-center gap-2">
-              <NavDropdown 
-                label="Tasks" 
+              <NavDropdown
+                label="Tasks"
                 isMega={true}
                 items={[
-                  { 
-                    label: "One to One Skill Share", 
+                  {
+                    label: "One to One Skill Share",
                     description: "Direct skill swap with one other person.\nI teach you Java, teach me Python.",
                     icon: MessageSquare,
-                    href: "/tasks/direct" 
+                    href: "/tasks/direct"
                   },
                   {
                     label: "Available Matches",
@@ -365,41 +365,41 @@ export function Navbar() {
                     icon: ArrowLeftRight,
                     href: "/tasks/one-to-one/matches"
                   },
-                  { 
-                    label: "Broadcast Class", 
+                  {
+                    label: "Broadcast Class",
                     description: "Teach a group. Set seats, share knowledge.\n3-hour React workshop, 12 students.",
                     icon: Users,
-                    href: "/broadcast" 
+                    href: "/broadcast"
                   },
-                  { 
-                    label: "Project Composite", 
+                  {
+                    label: "Project Composite",
                     description: "Build a team — multiple specialists, one project.\nProject: frontend, backend, database.",
                     icon: Workflow,
-                    href: "/tasks/project" 
+                    href: "/tasks/project"
                   }
-                ]} 
+                ]}
               />
-              <NavDropdown 
-                label="Learn" 
+              <NavDropdown
+                label="Learn"
                 isMega={true}
                 items={[
-                  { 
-                    label: "Learn from Tutor", 
+                  {
+                    label: "Learn from Tutor",
                     description: "Get guidance from experienced mentors. Learn skills step-by-step.\nLive sessions: coding + doubt solving + feedback.",
                     icon: GraduationCap,
-                    href: "/tutors" 
+                    href: "/tutors"
                   },
-                  { 
-                    label: "Notes", 
+                  {
+                    label: "Notes",
                     description: "Learn from Top Notes by Certified users\nSave notes: topics + key points + examples.",
                     icon: BookOpen,
-                    href: "/notes" 
+                    href: "/notes"
                   }
-                ]} 
+                ]}
               />
 
               <div className="relative" ref={chatRef}>
-                <button 
+                <button
                   onClick={() => setIsChatOpen(!isChatOpen)}
                   className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
                 >
@@ -430,7 +430,7 @@ export function Navbar() {
                             const partnerId = room.participants?.find((p: string) => p !== CURRENT_USER_ID)
                             const partner = room.participant_info?.[partnerId || ""] || { name: "Partner" }
                             return (
-                              <button 
+                              <button
                                 key={room.id}
                                 onClick={() => {
                                   navigate(`/chat?room=${room.id}`)
@@ -454,8 +454,8 @@ export function Navbar() {
                           })
                         )}
                       </div>
-                      <Link 
-                        to="/chat" 
+                      <Link
+                        to="/chat"
                         onClick={() => setIsChatOpen(false)}
                         className="block p-3 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-all"
                       >
@@ -492,12 +492,12 @@ export function Navbar() {
         {/* Right side controls */}
         <div className="flex items-center gap-4">
           <ModeToggle />
-          
+
           {/* Show full auth controls only when logged in AND not on landing page */}
           {showAppNav ? (
             <div className="flex items-center gap-4">
               <div className="relative" ref={notificationRef}>
-                <button 
+                <button
                   onClick={() => {
                     if (!isNotificationsOpen) markAllRead()
                     setIsNotificationsOpen(!isNotificationsOpen)
@@ -549,13 +549,13 @@ export function Navbar() {
                               </div>
                               {(n.type === 'request_new' || n.type === 'broadcast_request' || n.type === 'task_request') && (
                                 <div className="flex gap-2">
-                                  <Button 
+                                  <Button
                                     onClick={() => handleAction(n.id, n.data?.request_id || n.reference_id, n.data?.task_id || n.task_id, 'accepted', n.type)}
                                     className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest"
                                   >
                                     Accept
                                   </Button>
-                                  <Button 
+                                  <Button
                                     variant="ghost"
                                     onClick={() => handleAction(n.id, n.data?.request_id || n.reference_id, n.data?.task_id || n.task_id, 'declined', n.type)}
                                     className="flex-1 h-10 rounded-xl bg-secondary text-foreground font-bold text-[10px] uppercase tracking-widest"
@@ -577,7 +577,7 @@ export function Navbar() {
               </div>
 
               <div className="relative" ref={profileRef}>
-                <button 
+                <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="focus:outline-none"
                 >
@@ -589,7 +589,7 @@ export function Navbar() {
                     )}
                   </div>
                 </button>
-                
+
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-56 rounded-xl border-slim border-border bg-card p-1 shadow-sm z-50">
                     <div className="px-3 py-2 text-sm">
@@ -615,8 +615,8 @@ export function Navbar() {
                       <Settings className="h-4 w-4" /> My sessions
                     </button>
                     <div className="h-px bg-border my-1" />
-                    <button 
-                      onClick={() => { logout(); navigate('/') }} 
+                    <button
+                      onClick={() => { logout(); navigate('/') }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     >
                       <LogOut className="h-4 w-4" /> Log out

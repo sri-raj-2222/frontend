@@ -7,8 +7,8 @@ import {
   Check, Upload, Plus, BookOpen, MoreVertical, Flag,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -23,7 +23,7 @@ import { io } from "socket.io-client"
 import type { Message, Room, ConnectionStage, Review } from "@/types"
 import { supabase } from "@/lib/supabase"
 
-const socket = io("http://localhost:5000")
+const socket = io("https://backend-a41z.onrender.com")
 
 
 export default function Chat() {
@@ -39,16 +39,16 @@ export default function Chat() {
   const [notes, setNotes] = useState("")
   const [showFeedback, setShowFeedback] = useState(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
-  const [summarizing,  setSummarizing]  = useState(false)
-  const [aiResult,     setAiResult]     = useState<{ action: "polished" | "generated"; summary: string } | null>(null)
-  const [aiError,      setAiError]      = useState<string | null>(null)
-  
+  const [summarizing, setSummarizing] = useState(false)
+  const [aiResult, setAiResult] = useState<{ action: "polished" | "generated"; summary: string } | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
+
   // Post-Connection Lifecycle State
   const [stages, setStages] = useState<ConnectionStage[]>([])
   const [roomReviews, setRoomReviews] = useState<Review[]>([])
   const [activeModal, setActiveModal] = useState<'connect' | 'done' | 'review' | 'dispute' | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
-  
+
   // Modal states
   const [deliveryNote, setDeliveryNote] = useState("")
   const [reviewRating, setReviewRating] = useState(0)
@@ -57,7 +57,7 @@ export default function Chat() {
   const [reviewTags, setReviewTags] = useState<string[]>([])
   const [disputeReason, setDisputeReason] = useState("Work not delivered")
   const [disputeDesc, setDisputeDesc] = useState("")
-  
+
   // Note Upload States
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -69,7 +69,7 @@ export default function Chat() {
 
   // Report modal state
   const [reportOpen, setReportOpen] = useState(false)
-  const [kebabOpen, setKebabOpen]   = useState(false)
+  const [kebabOpen, setKebabOpen] = useState(false)
   const kebabRef = useRef<HTMLDivElement>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -89,7 +89,7 @@ export default function Chat() {
 
     // 1. Try local Express DB
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
       if (res.ok) localRooms = await res.json()
     } catch { /* server may be offline */ }
 
@@ -106,7 +106,7 @@ export default function Chat() {
         const { data: partners } = await supabase
           .from('profiles').select('id, name, profile_pic').in('id', partnerIds)
         const partnerMap: Record<string, any> = {}
-        ;(partners || []).forEach(p => { partnerMap[p.id] = p })
+          ; (partners || []).forEach(p => { partnerMap[p.id] = p })
 
         // Get task titles
         const taskIds = sbRooms.map(r => r.task_id).filter(Boolean)
@@ -114,7 +114,7 @@ export default function Chat() {
         if (taskIds.length > 0) {
           const { data: tasks } = await supabase
             .from('tasks').select('id, title').in('id', taskIds)
-          ;(tasks || []).forEach(t => { taskMap[t.id] = t })
+            ; (tasks || []).forEach(t => { taskMap[t.id] = t })
         }
 
         // Merge: add Supabase rooms not already in local DB
@@ -124,27 +124,27 @@ export default function Chat() {
           const partnerId = r.user_a === user.id ? r.user_b : r.user_a
           const partner = partnerMap[partnerId] || {}
           localRooms.push({
-            id:        r.id,
-            task_id:   r.task_id,
+            id: r.id,
+            task_id: r.task_id,
             task_title: taskMap[r.task_id]?.title || 'Skill Exchange',
             participants: [r.user_a, r.user_b],
             participant_info: {
               [r.user_a]: {
-                name:       r.user_a === user.id ? (user.name || 'Me') : (partner.name || 'Partner'),
+                name: r.user_a === user.id ? (user.name || 'Me') : (partner.name || 'Partner'),
                 avatar_url: r.user_a === user.id ? (user.profilePic || null) : (partner.profile_pic || null)
               },
               [r.user_b]: {
-                name:       r.user_b === user.id ? (user.name || 'Me') : (partner.name || 'Partner'),
+                name: r.user_b === user.id ? (user.name || 'Me') : (partner.name || 'Partner'),
                 avatar_url: r.user_b === user.id ? (user.profilePic || null) : (partner.profile_pic || null)
               },
             },
-            status:            r.status || 'active',
-            connected:         false,
+            status: r.status || 'active',
+            connected: false,
             connection_clicks: [],
-            messages:          [],
-            created_at:        r.created_at,
-            last_message:      null,
-            isSb:              true, // flag: use Supabase for messages
+            messages: [],
+            created_at: r.created_at,
+            last_message: null,
+            isSb: true, // flag: use Supabase for messages
           })
         })
       }
@@ -164,7 +164,7 @@ export default function Chat() {
           .order('created_at', { ascending: true })
         setMessages(data || [])
       } else {
-        const res = await fetch(`http://localhost:5000/api/chat/rooms/${roomId}/messages`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${roomId}/messages`)
         const data = await res.json()
         setMessages(data || [])
       }
@@ -179,7 +179,7 @@ export default function Chat() {
         setStages(stages || [])
         setRoomReviews(reviews || [])
       } else {
-        const res = await fetch(`http://localhost:5000/api/connections/${roomId}/status`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${roomId}/status`)
         const data = await res.json()
         setStages(data.stages || [])
         setRoomReviews(data.reviews || [])
@@ -213,7 +213,7 @@ export default function Chat() {
     const interval = setInterval(async () => {
       attempts++
       try {
-        const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
         if (res.ok) {
           const freshRooms: any[] = await res.json()
           const target = freshRooms.find((r: any) => r.id === initialRoomId)
@@ -234,13 +234,13 @@ export default function Chat() {
   useEffect(() => {
     if (user) {
       loadRooms()
-      
+
       // Use Socket.io for realtime instead of Supabase for consistency
       socket.on("message:new", (msg) => {
         if (activeRoom && msg.room_id === activeRoom.id) {
           setMessages(prev => [...prev, msg])
         }
-        loadRooms() 
+        loadRooms()
       })
 
       socket.on("stage:confirmed", ({ stage, confirmed_by }) => {
@@ -248,12 +248,12 @@ export default function Chat() {
         setStages(prev => {
           // Prevent duplicates
           if (prev.find(s => s.stage === stage && s.user_id === confirmed_by)) return prev;
-          return [...prev, { 
-            id: Math.random().toString(), 
-            room_id: activeRoom.id, 
-            user_id: confirmed_by, 
-            stage, 
-            confirmed_at: new Date().toISOString() 
+          return [...prev, {
+            id: Math.random().toString(),
+            room_id: activeRoom.id,
+            user_id: confirmed_by,
+            stage,
+            confirmed_at: new Date().toISOString()
           }]
         })
       })
@@ -299,7 +299,7 @@ export default function Chat() {
   const handleSend = async () => {
     if (!message.trim() || !activeRoom || !user) return
     const content = message.trim()
-    
+
     if ((activeRoom as any).is_supabase) {
       await supabase.from('chat_messages').insert({
         room_id: activeRoom.id,
@@ -316,14 +316,14 @@ export default function Chat() {
         content
       })
     }
-    
+
     setMessage("")
   }
 
   const handleSaveNotes = async () => {
     if (!activeRoom) return
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes })
@@ -339,7 +339,7 @@ export default function Chat() {
     const roomName = `ShareSphere-Exchange-${activeRoom.id.substring(0, 8)}`
     window.open(`https://meet.jit.si/${roomName}`, '_blank')
   }
-  
+
   const generateAIPortalSummary = async () => {
     if (!activeRoom) return
     const hasNotes = notes.trim().length > 10
@@ -369,20 +369,20 @@ export default function Chat() {
         .filter(m => {
           const content = m.content || (m as any).message || ''
           return !content.startsWith('FILE_SHARE:') &&
-                 !content.startsWith('DELIVERY_NOTE:') &&
-                 m.sender_id !== 'ai-assistant' &&
-                 m.sender_id !== 'system' &&
-                 (m as any).senderId !== 'ai-assistant' &&
-                 (m as any).senderId !== 'system'
+            !content.startsWith('DELIVERY_NOTE:') &&
+            m.sender_id !== 'ai-assistant' &&
+            m.sender_id !== 'system' &&
+            (m as any).senderId !== 'ai-assistant' &&
+            (m as any).senderId !== 'system'
         })
         .map(m => {
           const senderName = m.sender_name || (m as any).senderName ||
-                             (m.sender as any)?.name || 'User'
-          const content    = m.content || (m as any).message || ''
+            (m.sender as any)?.name || 'User'
+          const content = m.content || (m as any).message || ''
           return `${senderName}: ${content}`
         })
 
-      const chatHistory   = chatLines.join('\n')
+      const chatHistory = chatLines.join('\n')
       const exchangeTopic = (activeRoom as any).task_title || (activeRoom as any).title || ''
 
       // Nothing to work with at all
@@ -395,11 +395,11 @@ export default function Chat() {
       // Send BOTH notes and chatHistory to the server in all cases.
       // Mode A (Polish): server will enrich notes WITH the chat context.
       // Mode B (Generate): server creates structured notes purely from chat.
-      const res = await fetch('http://localhost:5000/api/ai/analyze-notes', {
-        method:  'POST',
+      const res = await fetch('https://backend-a41z.onrender.com/api/ai/analyze-notes', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          notes:         hasNotes ? notes : '',
+          notes: hasNotes ? notes : '',
           chatHistory,                           // ← always included now
           exchangeTopic,
         }),
@@ -410,8 +410,8 @@ export default function Chat() {
         const msg = res.status === 429
           ? 'Rate limit reached — wait 30 seconds and try again.'
           : res.status === 503
-          ? 'AI is not configured on the server. Please check the GROQ_API_KEY.'
-          : (err.error || 'AI request failed')
+            ? 'AI is not configured on the server. Please check the GROQ_API_KEY.'
+            : (err.error || 'AI request failed')
         throw new Error(msg)
       }
 
@@ -420,11 +420,11 @@ export default function Chat() {
       setAiResult({ action: data.action, summary: data.summary })
 
       // Auto-save so both peers see the updated notes
-      fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
-        method:  'PATCH',
+      fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ notes: data.improved }),
-      }).catch(() => {})
+        body: JSON.stringify({ notes: data.improved }),
+      }).catch(() => { })
       socket.emit('save_notes', { roomId: activeRoom.id, notes: data.improved })
 
       // Switch to notes tab so user sees the result immediately
@@ -452,17 +452,17 @@ export default function Chat() {
           room_id: activeRoom.id,
           user_id: user.id,
           stage,
-          delivery_note: stage === 'work_done' ? deliveryNote : null 
+          delivery_note: stage === 'work_done' ? deliveryNote : null
         })
         loadRoomStatus(activeRoom.id, true)
       } else {
-        const res = await fetch(`http://localhost:5000/api/connections/${activeRoom.id}/confirm`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${activeRoom.id}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            user_id: user.id, 
-            stage, 
-            delivery_note: stage === 'work_done' ? deliveryNote : null 
+          body: JSON.stringify({
+            user_id: user.id,
+            stage,
+            delivery_note: stage === 'work_done' ? deliveryNote : null
           })
         })
         if (res.ok) {
@@ -482,20 +482,20 @@ export default function Chat() {
     if (!partnerId) { console.error('Could not resolve partner ID'); return }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/reviews`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          room_id:        activeRoom.id,
-          reviewer_id:    user.id,
-          reviewer_name:  user.name,
+          room_id: activeRoom.id,
+          reviewer_id: user.id,
+          reviewer_name: user.name,
           target_user_id: partnerId,
-          rating:         reviewRating,
-          skill_level:    reviewSkill,
-          comment:        reviewComment,
-          tags:           reviewTags,
-          task_title:     activeRoom.task_title || 'Skill Exchange',
-          task_id:        (activeRoom as any).task_id || null
+          rating: reviewRating,
+          skill_level: reviewSkill,
+          comment: reviewComment,
+          tags: reviewTags,
+          task_title: activeRoom.task_title || 'Skill Exchange',
+          task_id: (activeRoom as any).task_id || null
         })
       })
       if (res.ok) {
@@ -517,7 +517,7 @@ export default function Chat() {
   const handleRaiseDispute = async () => {
     if (!activeRoom || !user) return
     try {
-      const res = await fetch(`http://localhost:5000/api/disputes`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/disputes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -543,7 +543,7 @@ export default function Chat() {
     if (!uploadData.title || !user || !activeRoom) return
     setUploading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/notes/upload', {
+      const res = await fetch('https://backend-a41z.onrender.com/api/notes/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -569,10 +569,10 @@ export default function Chat() {
   const getPartner = (r: Room) => {
     const partnerId = r.participants?.find(id => id !== user?.id) || (r.user_a === user?.id ? r.user_b : r.user_a);
     if (!partnerId) return { id: null, name: "User", avatar_url: null };
-    
+
     // Check participant_info first
     let info = r.participant_info?.[partnerId];
-    
+
     if (!info) {
       // Fallback to searching in info (handle case-sensitivity or key mismatch)
       const infoKey = Object.keys(r.participant_info || {}).find(k => k.toLowerCase() === String(partnerId).toLowerCase());
@@ -580,7 +580,7 @@ export default function Chat() {
     }
 
     if (!info) info = { name: "Peer", avatar_url: null };
-    
+
     return { ...info, id: partnerId };
   }
 
@@ -657,7 +657,7 @@ export default function Chat() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button onClick={startVideoCall} variant="ghost" className="h-10 w-10 p-0 rounded-xl border border-border bg-card/50 hover:bg-primary hover:text-primary-foreground">
                     <Video className="h-4 w-4" />
@@ -696,18 +696,18 @@ export default function Chat() {
                       { id: 'review', label: 'Review' }
                     ].map((step, idx) => {
                       const partnerId = activeRoom?.participants?.find(id => id !== user?.id)
-                      
-                      const myConfirm = step.id === 'review' 
+
+                      const myConfirm = step.id === 'review'
                         ? roomReviews.some(r => r.reviewer_id === user?.id)
                         : stages.some(s => s.stage === step.id && s.user_id === user?.id)
-                      
+
                       const peerConfirm = step.id === 'review'
                         ? roomReviews.some(r => r.reviewer_id === partnerId)
                         : stages.some(s => s.stage === step.id && s.user_id === partnerId)
 
                       const isComplete = myConfirm && peerConfirm
                       const isActive = !isComplete && (
-                        (idx === 0) || 
+                        (idx === 0) ||
                         (idx === 1 && stages.filter(s => s.stage === 'connected').length >= 2) ||
                         (idx === 2 && stages.filter(s => s.stage === 'work_done').length >= 2)
                       )
@@ -717,9 +717,9 @@ export default function Chat() {
                           <div className="flex flex-col items-center gap-2">
                             <div className={cn(
                               "h-8 px-4 rounded-full flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-tighter transition-all",
-                              isComplete ? "bg-green-500 text-white" : 
-                              isActive ? "bg-primary text-white scale-110 shadow-lg shadow-primary/20" : 
-                              "bg-secondary/20 text-muted-foreground border border-border/50"
+                              isComplete ? "bg-green-500 text-white" :
+                                isActive ? "bg-primary text-white scale-110 shadow-lg shadow-primary/20" :
+                                  "bg-secondary/20 text-muted-foreground border border-border/50"
                             )}>
                               {isComplete ? <Check className="h-3 w-3" /> : (idx + 1)}
                               <span className="hidden sm:inline">{step.label}</span>
@@ -755,23 +755,23 @@ export default function Chat() {
 
                           if (!bothStage1) {
                             return (
-                                <Button 
-                                  onClick={() => setActiveModal('connect')} 
-                                  disabled={!!myStage1}
-                                  className={cn(
-                                    "h-11 px-8 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-xl transition-all",
-                                    myStage1 ? "bg-secondary text-muted-foreground" : "bg-primary text-primary-foreground animate-pulse"
-                                  )}
-                                >
-                                  {myStage1 ? "Waiting for peer..." : "Make a Connection"}
-                                </Button>
+                              <Button
+                                onClick={() => setActiveModal('connect')}
+                                disabled={!!myStage1}
+                                className={cn(
+                                  "h-11 px-8 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-xl transition-all",
+                                  myStage1 ? "bg-secondary text-muted-foreground" : "bg-primary text-primary-foreground animate-pulse"
+                                )}
+                              >
+                                {myStage1 ? "Waiting for peer..." : "Make a Connection"}
+                              </Button>
                             )
                           }
                           if (!bothStage2) {
                             return (
                               <div className="flex flex-col items-center gap-1">
-                                <Button 
-                                  onClick={() => setActiveModal('done')} 
+                                <Button
+                                  onClick={() => setActiveModal('done')}
                                   disabled={!!myStage2}
                                   className={cn(
                                     "h-11 px-8 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-xl transition-all",
@@ -787,8 +787,8 @@ export default function Chat() {
                             )
                           }
                           return (
-                            <Button 
-                              onClick={() => setActiveModal('review')} 
+                            <Button
+                              onClick={() => setActiveModal('review')}
                               disabled={!!myReview}
                               className={cn(
                                 "h-11 px-8 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-xl transition-all",
@@ -811,11 +811,11 @@ export default function Chat() {
                 <div className={cn("flex-1 flex flex-col border-r border-border bg-background transition-all", activeTab === 'notes' ? 'hidden md:flex' : 'flex')}>
                   <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6">
                     {messages.map(msg => {
-                      const isSystem       = msg.sender_id === 'system'
-                      const isAiGreeting   = msg.sender_id === 'ai-assistant'
+                      const isSystem = msg.sender_id === 'system'
+                      const isAiGreeting = msg.sender_id === 'ai-assistant'
                       const isDeliveryNote = msg.content?.startsWith('DELIVERY_NOTE:')
-                      const isFileShare    = msg.content?.startsWith('FILE_SHARE:')
-                      
+                      const isFileShare = msg.content?.startsWith('FILE_SHARE:')
+
                       if (isSystem) {
                         return (
                           <div key={msg.id} className="flex justify-center py-4">
@@ -958,8 +958,8 @@ export default function Chat() {
                           {summarizing
                             ? "AI Working…"
                             : notes.trim()
-                            ? "Polish Notes"
-                            : "Generate from Chat"}
+                              ? "Polish Notes"
+                              : "Generate from Chat"}
                         </Button>
 
                         <Button onClick={handleSaveNotes} className="rounded-xl bg-primary text-primary-foreground h-12 px-8 font-bold uppercase text-[10px] tracking-widest gap-2 shadow-lg">
@@ -985,14 +985,14 @@ export default function Chat() {
                     <div className="flex-1 flex gap-8 min-h-0">
                       {/* Notepad */}
                       <div className="flex-[2] bg-card/50 border border-border rounded-[32px] p-8 shadow-inner overflow-hidden relative">
-                        <Textarea 
-                          value={notes} 
+                        <Textarea
+                          value={notes}
                           onChange={e => {
                             setNotes(e.target.value);
                             socket.emit('note_update', { roomId: activeRoom.id, content: e.target.value });
-                          }} 
-                          placeholder="Start typing collaborative notes..." 
-                          className="w-full h-full border-none bg-transparent shadow-none focus-visible:ring-0 resize-none font-semibold text-lg leading-relaxed p-0" 
+                          }}
+                          placeholder="Start typing collaborative notes..."
+                          className="w-full h-full border-none bg-transparent shadow-none focus-visible:ring-0 resize-none font-semibold text-lg leading-relaxed p-0"
                         />
                       </div>
 
@@ -1055,7 +1055,7 @@ export default function Chat() {
                 </div>
                 <DialogTitle className="text-2xl font-bold leading-tight">Make a Connection</DialogTitle>
                 <DialogDescription className="text-lg font-medium text-muted-foreground pt-4">
-                  You are about to confirm your connection with <span className="text-foreground font-semibold">{activeRoom ? getPartner(activeRoom).name : 'your partner'}</span>. 
+                  You are about to confirm your connection with <span className="text-foreground font-semibold">{activeRoom ? getPartner(activeRoom).name : 'your partner'}</span>.
                   This means you both agree to complete the exchange as posted.
                 </DialogDescription>
               </DialogHeader>
@@ -1086,10 +1086,10 @@ export default function Chat() {
                 </div>
                 <div className="space-y-3">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Delivery Note (Optional)</Label>
-                  <Textarea 
-                    value={deliveryNote} 
+                  <Textarea
+                    value={deliveryNote}
                     onChange={e => setDeliveryNote(e.target.value)}
-                    placeholder="Add a note about what was delivered..." 
+                    placeholder="Add a note about what was delivered..."
                     className="min-h-[120px] rounded-2xl border-border bg-background font-semibold"
                   />
                 </div>
@@ -1135,8 +1135,8 @@ export default function Chat() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Rate their skill level</Label>
                   <div className="grid grid-cols-3 gap-3">
                     {['Beginner', 'Intermediate', 'Expert'].map(skill => (
-                      <button 
-                        key={skill} 
+                      <button
+                        key={skill}
                         onClick={() => setReviewSkill(skill)}
                         className={cn(
                           "h-12 rounded-2xl font-bold text-xs uppercase tracking-widest border-2 transition-all",
@@ -1154,7 +1154,7 @@ export default function Chat() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">What stood out?</Label>
                   <div className="flex flex-wrap gap-2">
                     {['Punctual', 'Clear communicator', 'Highly skilled', 'Would exchange again'].map(tag => (
-                      <button 
+                      <button
                         key={tag}
                         onClick={() => setReviewTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
                         className={cn(
@@ -1176,17 +1176,17 @@ export default function Chat() {
                       {reviewComment.length}/5 Min
                     </span>
                   </div>
-                  <Textarea 
-                    value={reviewComment} 
+                  <Textarea
+                    value={reviewComment}
                     onChange={e => setReviewComment(e.target.value)}
-                    placeholder="Tell us about the exchange..." 
+                    placeholder="Tell us about the exchange..."
                     className="min-h-[120px] rounded-[24px] border-border bg-background font-semibold p-6"
                   />
                 </div>
               </div>
 
               <DialogFooter className="mt-6">
-                <Button 
+                <Button
                   onClick={handleSubmitReview}
                   disabled={reviewRating === 0 || reviewComment.length < 5}
                   className="h-16 w-full rounded-2xl bg-teal-500 hover:bg-teal-600 text-white font-bold uppercase tracking-widest text-xs shadow-xl shadow-teal-500/20"
@@ -1213,8 +1213,8 @@ export default function Chat() {
               <div className="space-y-6 py-6">
                 <div className="space-y-3">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Reason</Label>
-                  <select 
-                    value={disputeReason} 
+                  <select
+                    value={disputeReason}
                     onChange={e => setDisputeReason(e.target.value)}
                     className="w-full h-14 px-6 rounded-2xl border border-border bg-background font-semibold text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   >
@@ -1226,10 +1226,10 @@ export default function Chat() {
                 </div>
                 <div className="space-y-3">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Description</Label>
-                  <Textarea 
-                    value={disputeDesc} 
+                  <Textarea
+                    value={disputeDesc}
                     onChange={e => setDisputeDesc(e.target.value)}
-                    placeholder="Provide details about the issue..." 
+                    placeholder="Provide details about the issue..."
                     className="min-h-[120px] rounded-2xl border-border bg-background font-semibold p-6"
                   />
                 </div>
@@ -1256,24 +1256,24 @@ export default function Chat() {
                 Share your knowledge resources with your peer. These will be added to the collaborative workspace.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-6 py-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Note Title</label>
-                <Input 
+                <Input
                   value={uploadData.title}
                   onChange={e => setUploadData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="e.g. Advanced React Design Patterns" 
+                  placeholder="e.g. Advanced React Design Patterns"
                   className="h-14 rounded-2xl border-2 border-border bg-background px-6 font-semibold focus:border-primary transition-all"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Description</label>
-                <Textarea 
+                <Textarea
                   value={uploadData.description}
                   onChange={e => setUploadData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="What is covered in these notes?" 
+                  placeholder="What is covered in these notes?"
                   className="min-h-[120px] rounded-[24px] border-2 border-border bg-background p-6 font-semibold focus:border-primary transition-all"
                 />
               </div>
@@ -1281,10 +1281,10 @@ export default function Chat() {
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Attachment</label>
                 <div className="relative group">
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     onChange={handleFileUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
                   <div className={cn(
                     "h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all",
@@ -1307,14 +1307,14 @@ export default function Chat() {
             </div>
 
             <DialogFooter className="gap-3 sm:gap-0">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => setIsUploadModalOpen(false)}
                 className="h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px] flex-1"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={submitUpload}
                 disabled={!uploadData.title || uploading}
                 className="h-14 rounded-2xl bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 flex-1"
@@ -1333,9 +1333,9 @@ export default function Chat() {
         </div>
       )}
 
-      <FeedbackModal 
-        isOpen={showFeedback} 
-        onClose={() => setShowFeedback(false)} 
+      <FeedbackModal
+        isOpen={showFeedback}
+        onClose={() => setShowFeedback(false)}
         taskId={activeRoom?.task_id || ""}
         partnerId={activeRoom?.participants ? (activeRoom.participants.find(id => id !== user?.id) || "") : ""}
         onComplete={() => {

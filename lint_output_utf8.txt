@@ -22,7 +22,7 @@ C:\Users\garap\OneDrive\Desktop\sharesphere2\WORK\WORK\src\components\navbar.tsx
      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 > 74 |     try {
      | ^^^^^^^^^
-> 75 |       const res = await fetch(`http://localhost:5000/api/notifications?user_id=${CURRENT_USER_ID}`)
+> 75 |       const res = await fetch(`https://backend-a41z.onrender.com/api/notifications?user_id=${CURRENT_USER_ID}`)
      | ^^^^^^^^^
 > 76 |       const data = await res.json()
      | ^^^^^^^^^
@@ -61,7 +61,7 @@ C:\Users\garap\OneDrive\Desktop\sharesphere2\WORK\WORK\src\components\navbar.tsx
      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 > 85 |     try {
      | ^^^^^^^^^
-> 86 |       const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
+> 86 |       const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
      | ^^^^^^^^^
 > 87 |       const data = await res.json()
      | ^^^^^^^^^

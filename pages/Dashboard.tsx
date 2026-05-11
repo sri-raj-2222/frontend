@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Zap, 
+import {
+  Zap,
   Users, ArrowRight,
   Bell, Handshake
 } from "lucide-react"
@@ -51,10 +51,10 @@ export default function Dashboard() {
     if (!user) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/notifications?user_id=${user.id}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/notifications?user_id=${user.id}`)
       if (!res.ok) throw new Error("Failed to fetch notifications")
       const data = await res.json()
-      
+
       const transformed: DashboardNotification[] = data.map((n: Notification) => {
         let type: DashboardNotification['type'] = 'request'
         if (n.type === 'request_accepted' || n.type === 'broadcast_accepted') type = 'handshake'
@@ -82,7 +82,7 @@ export default function Dashboard() {
       // 1. Fetch from local Express DB
       let localPosts: Post[] = []
       try {
-        const res = await fetch(`http://localhost:5000/api/user/${user.id}/posts`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/posts`)
         if (res.ok) localPosts = await res.json()
       } catch { /* server may be offline */ }
 
@@ -133,7 +133,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen w-full bg-background overflow-x-hidden">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-32">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
@@ -146,7 +146,7 @@ export default function Dashboard() {
               Your <span className="text-muted-foreground">Sphere.</span>
             </h1>
           </div>
-          
+
           <div className="flex gap-4">
             <Button onClick={() => navigate("/tasks/one-to-one/matches")} variant="outline" className="h-12 px-6 rounded-2xl border-primary/20 bg-primary/5 text-primary font-semibold text-sm hover:bg-primary/10 transition-all flex items-center gap-2.5">
               <Zap className="h-4 w-4 fill-primary" />
@@ -163,12 +163,12 @@ export default function Dashboard() {
                 <h2 className="text-xl font-semibold flex items-center gap-2.5"><Zap className="h-5 w-5 text-primary fill-primary" /> Active Projects</h2>
                 <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">{posts.length} ACTIVE</span>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {loading ? [1,2].map(i => <div key={i} className="h-56 rounded-3xl bg-secondary/20 animate-pulse" />) : posts.map(post => (
-                  <motion.div 
-                    key={post.id} 
-                    whileHover={{ y: -3 }} 
+                {loading ? [1, 2].map(i => <div key={i} className="h-56 rounded-3xl bg-secondary/20 animate-pulse" />) : posts.map(post => (
+                  <motion.div
+                    key={post.id}
+                    whileHover={{ y: -3 }}
                     onClick={() => navigate('/activity')}
                     className="p-6 rounded-3xl border border-border bg-card/50 backdrop-blur-md relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-all"
                   >
@@ -194,13 +194,13 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold mb-6 flex items-center gap-2.5">
                 <Bell className="h-4 w-4 text-primary" /> Live Updates
               </h2>
-              
+
               <div className="space-y-6">
                 <AnimatePresence mode="popLayout">
                   {notifications.length === 0 ? (
                     <div className="py-12 text-center opacity-30"><p className="text-xs font-semibold uppercase">No new activity</p></div>
                   ) : notifications.map(notif => (
-                    <motion.div 
+                    <motion.div
                       key={notif.id}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -229,7 +229,7 @@ export default function Dashboard() {
                   ))}
                 </AnimatePresence>
               </div>
-              
+
               <Button onClick={() => navigate("/activity")} variant="ghost" className="w-full mt-8 rounded-2xl text-[10px] font-semibold uppercase tracking-widest gap-2">View Activity History <ArrowRight className="h-3 w-3" /></Button>
             </div>
           </aside>

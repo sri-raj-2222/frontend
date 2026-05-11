@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface Broadcast {
   id: string
@@ -44,9 +44,9 @@ interface MyEnrollment {
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  beginner:     'text-green-600 bg-green-50 border-green-200',
+  beginner: 'text-green-600 bg-green-50 border-green-200',
   intermediate: 'text-yellow-600 bg-yellow-50 border-yellow-200',
-  advanced:     'text-red-600 bg-red-50 border-red-200',
+  advanced: 'text-red-600 bg-red-50 border-red-200',
 }
 
 // ── Class Detail Modal ────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ function ClassDetailModal({
   enrolling: boolean
 }) {
   const spotsLeft = broadcast.max_people - broadcast.current_people
-  const isFull    = spotsLeft <= 0
+  const isFull = spotsLeft <= 0
 
   const formatDate = (iso: string | null) => {
     if (!iso) return null
@@ -248,15 +248,15 @@ function ClassDetailModal({
 export default function TutorDiscovery() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab]         = useState<'discover' | 'my-classes'>('discover')
-  const [broadcasts, setBroadcasts]       = useState<Broadcast[]>([])
+  const [activeTab, setActiveTab] = useState<'discover' | 'my-classes'>('discover')
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([])
   const [myEnrollments, setMyEnrollments] = useState<MyEnrollment[]>([])
-  const [loading, setLoading]             = useState(true)
+  const [loading, setLoading] = useState(true)
   const [loadingEnrollments, setLoadingEnrollments] = useState(false)
-  const [searchQuery, setSearchQuery]     = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
-  const [enrollingId, setEnrollingId]     = useState<string | null>(null)
-  const [preview, setPreview]             = useState<Broadcast | null>(null)
+  const [enrollingId, setEnrollingId] = useState<string | null>(null)
+  const [preview, setPreview] = useState<Broadcast | null>(null)
 
   const CATEGORIES = ["All", "Development", "Design", "Marketing", "Data Science", "Business", "Language", "Music"]
 
@@ -319,8 +319,8 @@ export default function TutorDiscovery() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id:    user.id,
-          userName:   user.name,
+          user_id: user.id,
+          userName: user.name,
           userAvatar: user.profilePic
         })
       })
@@ -597,17 +597,17 @@ export default function TutorDiscovery() {
                       <div className="flex items-center justify-between mb-5">
                         <span className={cn(
                           "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-1",
-                          e.status === 'attended'  ? 'bg-green-50 text-green-700 border-green-200' :
-                          e.status === 'no_show'   ? 'bg-red-50 text-red-600 border-red-200' :
-                          isLive                   ? 'bg-red-50 text-red-600 border-red-200' :
-                          isCancelled              ? 'bg-orange-50 text-orange-600 border-orange-200' :
-                          'bg-blue-50 text-blue-600 border-blue-200'
+                          e.status === 'attended' ? 'bg-green-50 text-green-700 border-green-200' :
+                            e.status === 'no_show' ? 'bg-red-50 text-red-600 border-red-200' :
+                              isLive ? 'bg-red-50 text-red-600 border-red-200' :
+                                isCancelled ? 'bg-orange-50 text-orange-600 border-orange-200' :
+                                  'bg-blue-50 text-blue-600 border-blue-200'
                         )}>
                           {isLive && <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />}
                           {e.status === 'attended' ? 'Attended' :
-                           e.status === 'no_show'  ? 'No Show' :
-                           isLive                  ? 'Live Now' :
-                           isCancelled             ? 'Cancelled' : 'Enrolled'}
+                            e.status === 'no_show' ? 'No Show' :
+                              isLive ? 'Live Now' :
+                                isCancelled ? 'Cancelled' : 'Enrolled'}
                         </span>
                         {b.reward_credits > 0 && (
                           <span className="text-xs font-black text-yellow-600 flex items-center gap-1">

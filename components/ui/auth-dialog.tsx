@@ -19,10 +19,10 @@ import PasswordConfirmInput from "@/components/ui/assisted-password-confirmation
 import ProfilePicSelector from "@/components/ui/profile-pic-selector"
 import { supabase } from "@/lib/supabase"
 
-export default function AuthDialog({ 
-  trigger, 
-  initialMode = "signup" 
-}: { 
+export default function AuthDialog({
+  trigger,
+  initialMode = "signup"
+}: {
   trigger?: React.ReactNode;
   initialMode?: "signup" | "login";
 }) {
@@ -34,13 +34,13 @@ export default function AuthDialog({
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [avatar, setAvatar] = useState<string | null>(null)
-  
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const id = useId()
   const navigate = useNavigate()
-  
+
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       console.log("Google Login Success:", tokenResponse);
@@ -101,7 +101,7 @@ export default function AuthDialog({
 
         // Step 1: Check if email + password matches an admin account
         try {
-          const adminRes = await fetch('http://localhost:5000/api/admin/login', {
+          const adminRes = await fetch('https://backend-a41z.onrender.com/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email.trim().toLowerCase(), password })
@@ -128,7 +128,7 @@ export default function AuthDialog({
         const userId = loginData.user?.id
         if (userId) {
           try {
-            const banRes = await fetch(`http://localhost:5000/api/users/${userId}/ban-status`)
+            const banRes = await fetch(`https://backend-a41z.onrender.com/api/users/${userId}/ban-status`)
             const banData = await banRes.json()
             if (banData.banned) {
               // Sign them back out immediately so the session is not persisted
@@ -205,13 +205,13 @@ export default function AuthDialog({
 
           <div className="space-y-4">
             <div className="*:not-first:mt-2">
-              <AssistedEmailInput 
-                value={email} 
-                onChange={setEmail} 
-                inputPlaceholder="hi@yourcompany.com" 
+              <AssistedEmailInput
+                value={email}
+                onChange={setEmail}
+                inputPlaceholder="hi@yourcompany.com"
               />
             </div>
-            
+
             {mode === "signup" ? (
               <PasswordConfirmInput
                 password={password}
@@ -270,9 +270,9 @@ export default function AuthDialog({
             <div className="before:bg-border after:bg-border flex items-center gap-3 before:h-px before:flex-1 after:h-px after:flex-1 my-4">
               <span className="text-muted-foreground text-xs">Or</span>
             </div>
-            <Button 
-              variant="outline" 
-              type="button" 
+            <Button
+              variant="outline"
+              type="button"
               onClick={() => googleLogin()}
               className="w-full transition-colors duration-300 rounded-lg hover:bg-foreground hover:text-background flex items-center justify-center gap-2"
             >

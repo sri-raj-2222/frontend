@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 export default function AdminLogin() {
   const navigate = useNavigate()
-  const [email, setEmail]       = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [showPw, setShowPw]     = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState("")
+  const [showPw, setShowPw] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

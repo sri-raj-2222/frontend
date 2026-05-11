@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Clock, CheckCircle2, XCircle, 
+import {
+  Clock, CheckCircle2, XCircle,
   Inbox, Send, MessageSquare
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface Request {
   id: string
@@ -57,7 +57,7 @@ export default function Requests() {
 
   const handleAction = async (requestId: string, taskId: string, status: 'accepted' | 'declined', type: 'direct' | 'broadcast') => {
     try {
-      const endpoint = type === 'broadcast' 
+      const endpoint = type === 'broadcast'
         ? `${API}/api/broadcast_requests/${requestId}`
         : `${API}/api/tasks/${taskId}/requests/${requestId}`;
 
@@ -84,7 +84,7 @@ export default function Requests() {
   return (
     <div className="min-h-screen w-full bg-background transition-colors duration-300 overflow-x-hidden">
       <Navbar />
-      
+
       <main className="relative pb-32">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -111,13 +111,12 @@ export default function Requests() {
           <div className="flex p-1.5 bg-secondary/30 border border-border/50 rounded-[28px] w-full max-w-md mb-12 backdrop-blur-xl">
             <button
               onClick={() => setActiveTab('incoming')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] text-xs font-black uppercase tracking-widest transition-all ${
-                activeTab === 'incoming' 
-                  ? "bg-card text-primary shadow-xl border border-border/50" 
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'incoming'
+                  ? "bg-card text-primary shadow-xl border border-border/50"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
-              <Inbox className="h-4 w-4" /> 
+              <Inbox className="h-4 w-4" />
               Incoming
               {requests.incoming.filter(r => r.status === 'pending').length > 0 && (
                 <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] ml-1">
@@ -127,13 +126,12 @@ export default function Requests() {
             </button>
             <button
               onClick={() => setActiveTab('outgoing')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] text-xs font-black uppercase tracking-widest transition-all ${
-                activeTab === 'outgoing' 
-                  ? "bg-card text-primary shadow-xl border border-border/50" 
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[22px] text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'outgoing'
+                  ? "bg-card text-primary shadow-xl border border-border/50"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
-              <Send className="h-4 w-4" /> 
+              <Send className="h-4 w-4" />
               Outgoing
             </button>
           </div>
@@ -148,7 +146,7 @@ export default function Requests() {
               ))}
             </div>
           ) : currentRequests.length === 0 ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="py-32 text-center rounded-[48px] border border-dashed border-border bg-card/30"
@@ -158,8 +156,8 @@ export default function Requests() {
               </div>
               <h3 className="text-xl font-black mb-2 uppercase tracking-tighter">No {activeTab} requests</h3>
               <p className="text-muted-foreground text-sm font-medium">
-                {activeTab === 'incoming' 
-                  ? "When others want to learn from you, their requests will show up here." 
+                {activeTab === 'incoming'
+                  ? "When others want to learn from you, their requests will show up here."
                   : "Go to the discovery page to find skills you want to learn!"}
               </p>
               {activeTab === 'outgoing' && (
@@ -187,12 +185,11 @@ export default function Requests() {
                         <div className="h-14 w-14 rounded-2xl bg-secondary flex items-center justify-center font-black text-xl text-primary border border-border group-hover:scale-110 transition-transform">
                           {activeTab === 'incoming' ? (req.requester?.name?.[0] || '?') : (req.task.posted_by?.[0] || 'T')}
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg flex items-center justify-center border-2 border-card ${
-                          req.status === 'accepted' ? "bg-primary text-primary-foreground" : 
-                          req.status === 'declined' ? "bg-destructive text-destructive-foreground" : "bg-yellow-500 text-white"
-                        }`}>
-                          {req.status === 'accepted' ? <CheckCircle2 className="h-3 w-3" /> : 
-                           req.status === 'declined' ? <XCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                        <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-lg flex items-center justify-center border-2 border-card ${req.status === 'accepted' ? "bg-primary text-primary-foreground" :
+                            req.status === 'declined' ? "bg-destructive text-destructive-foreground" : "bg-yellow-500 text-white"
+                          }`}>
+                          {req.status === 'accepted' ? <CheckCircle2 className="h-3 w-3" /> :
+                            req.status === 'declined' ? <XCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                         </div>
                       </div>
                       <div className="flex flex-col min-w-0">
@@ -207,9 +204,8 @@ export default function Requests() {
 
                     <div className="flex-1 min-w-0 mb-6 md:mb-0 md:px-8">
                       <div className="flex items-center gap-2 mb-2">
-                        <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                          req.type === 'broadcast' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-primary/10 text-primary border-primary/20"
-                        }`}>
+                        <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${req.type === 'broadcast' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-primary/10 text-primary border-primary/20"
+                          }`}>
                           {req.type === 'broadcast' ? "Cohort" : "Direct Swap"}
                         </div>
                         <span className="text-[10px] font-black text-muted-foreground uppercase opacity-40">
@@ -237,13 +233,13 @@ export default function Requests() {
                     <div className="flex items-center gap-3 md:w-1/4 justify-end">
                       {activeTab === 'incoming' && req.status === 'pending' ? (
                         <>
-                          <Button 
+                          <Button
                             onClick={() => handleAction(req.id, req.task_id, 'accepted', req.type)}
                             className="h-12 px-6 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-none"
                           >
                             Accept
                           </Button>
-                          <Button 
+                          <Button
                             variant="ghost"
                             onClick={() => handleAction(req.id, req.task_id, 'declined', req.type)}
                             className="h-12 px-6 rounded-2xl bg-secondary/50 font-black text-[10px] uppercase tracking-widest hover:bg-destructive/10 hover:text-destructive transition-colors"
@@ -252,17 +248,16 @@ export default function Requests() {
                           </Button>
                         </>
                       ) : (
-                        <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl border ${
-                          req.status === 'accepted' ? "border-primary/20 bg-primary/5 text-primary" : 
-                          req.status === 'declined' ? "border-destructive/20 bg-destructive/5 text-destructive" : "border-border bg-secondary/30 text-muted-foreground"
-                        }`}>
+                        <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl border ${req.status === 'accepted' ? "border-primary/20 bg-primary/5 text-primary" :
+                            req.status === 'declined' ? "border-destructive/20 bg-destructive/5 text-destructive" : "border-border bg-secondary/30 text-muted-foreground"
+                          }`}>
                           <span className="text-[10px] font-black uppercase tracking-widest">
                             {req.status === 'accepted' ? "Accepted" : req.status === 'declined' ? "Declined" : "Still Pending"}
                           </span>
                           {req.status === 'accepted' && (
-                            <Button 
+                            <Button
                               onClick={() => navigate('/chat')}
-                              variant="ghost" 
+                              variant="ghost"
                               className="h-8 w-8 p-0 rounded-lg hover:bg-primary/20"
                             >
                               <MessageSquare className="h-4 w-4" />

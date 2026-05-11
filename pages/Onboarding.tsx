@@ -1,14 +1,14 @@
 ﻿import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Check, 
-  ChevronRight, 
-  ChevronLeft, 
-  Upload, 
-  FileText, 
-  Link2, 
-  Globe, 
+import {
+  Check,
+  ChevronRight,
+  ChevronLeft,
+  Upload,
+  FileText,
+  Link2,
+  Globe,
   Search,
   X,
   MapPin,
@@ -30,7 +30,7 @@ const STEPS = [
 ]
 
 const SKILLS_LIST = [
-  "React", "Node.js", "TypeScript", "Python", "UI Design", 
+  "React", "Node.js", "TypeScript", "Python", "UI Design",
   "UX Research", "Graphic Design", "Content Writing", "SEO",
   "Digital Marketing", "Project Management", "Data Analysis",
   "Machine Learning", "Cloud Computing", "DevOps", "Docker",
@@ -53,7 +53,7 @@ export default function Onboarding() {
     },
     skills: [] as string[]
   })
-  
+
   const [skillSearch, setSkillSearch] = useState("")
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -62,7 +62,7 @@ export default function Onboarding() {
     if (!user?.id) return
     try {
       // 1. Update Profile
-      const profRes = await fetch(`http://localhost:5000/api/user/${user.id}/profile`, {
+      const profRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -72,15 +72,15 @@ export default function Onboarding() {
           bio: formData.profile.bio,
         })
       })
-      
+
       if (!profRes.ok) throw new Error("Failed to update profile")
 
       // 2. Save Skills
       if (formData.skills.length > 0) {
         // We'll just add them for now. In a real app we might clear old ones first.
         // For simplicity during onboarding, we just POST them.
-        await Promise.all(formData.skills.map(skill => 
-          fetch(`http://localhost:5000/api/user/${user.id}/skills`, {
+        await Promise.all(formData.skills.map(skill =>
+          fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/skills`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -111,7 +111,7 @@ export default function Onboarding() {
     })
   }
 
-  const filteredSkills = SKILLS_LIST.filter(s => 
+  const filteredSkills = SKILLS_LIST.filter(s =>
     s.toLowerCase().includes(skillSearch.toLowerCase()) && !formData.skills.includes(s)
   )
 
@@ -122,24 +122,24 @@ export default function Onboarding() {
         <div className="relative flex justify-between">
           {/* Connector Line */}
           <div className="absolute top-5 left-0 w-full h-0.5 bg-muted -z-10" />
-          <motion.div 
+          <motion.div
             className="absolute top-5 left-0 h-0.5 bg-primary -z-10"
             initial={{ width: "0%" }}
             animate={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
             transition={{ duration: 0.5 }}
           />
-          
+
           {STEPS.map((step) => {
             const isCompleted = currentStep > step.id || currentStep === 5
             const isCurrent = currentStep === step.id
-            
+
             return (
               <div key={step.id} className="flex flex-col items-center">
-                <motion.div 
+                <motion.div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 bg-background",
-                    isCompleted ? "border-primary bg-primary text-primary-foreground" : 
-                    isCurrent ? "border-primary text-primary" : "border-muted text-muted-foreground"
+                    isCompleted ? "border-primary bg-primary text-primary-foreground" :
+                      isCurrent ? "border-primary text-primary" : "border-muted text-muted-foreground"
                   )}
                   animate={isCurrent ? { scale: [1, 1.1, 1] } : {}}
                   transition={{ repeat: isCurrent ? Infinity : 0, duration: 2 }}
@@ -175,9 +175,9 @@ export default function Onboarding() {
               </div>
 
               <div className="space-y-6">
-                <ProfilePicSelector 
-                  selectedImage={formData.profile.photo} 
-                  onImageSelect={(img) => setFormData(p => ({ ...p, profile: { ...p.profile, photo: img } }))} 
+                <ProfilePicSelector
+                  selectedImage={formData.profile.photo}
+                  onImageSelect={(img) => setFormData(p => ({ ...p, profile: { ...p.profile, photo: img } }))}
                 />
 
                 <div className="space-y-4">
@@ -185,10 +185,10 @@ export default function Onboarding() {
                     <Label htmlFor="title">Professional Title</Label>
                     <div className="relative">
                       <Briefcase className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        id="title" 
-                        className="pl-10" 
-                        placeholder="e.g. Senior Frontend Developer" 
+                      <Input
+                        id="title"
+                        className="pl-10"
+                        placeholder="e.g. Senior Frontend Developer"
                         value={formData.profile.title}
                         onChange={(e) => setFormData(p => ({ ...p, profile: { ...p.profile, title: e.target.value } }))}
                       />
@@ -199,10 +199,10 @@ export default function Onboarding() {
                     <Label htmlFor="location">Location</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        id="location" 
-                        className="pl-10" 
-                        placeholder="e.g. San Francisco, CA" 
+                      <Input
+                        id="location"
+                        className="pl-10"
+                        placeholder="e.g. San Francisco, CA"
                         value={formData.profile.location}
                         onChange={(e) => setFormData(p => ({ ...p, profile: { ...p.profile, location: e.target.value } }))}
                       />
@@ -211,9 +211,9 @@ export default function Onboarding() {
 
                   <div className="space-y-2">
                     <Label htmlFor="bio">Short Bio</Label>
-                    <Textarea 
-                      id="bio" 
-                      placeholder="Share a brief overview of your experience and what you're looking for..." 
+                    <Textarea
+                      id="bio"
+                      placeholder="Share a brief overview of your experience and what you're looking for..."
                       className="min-h-[100px] resize-none"
                       value={formData.profile.bio}
                       onChange={(e) => setFormData(p => ({ ...p, profile: { ...p.profile, bio: e.target.value } }))}
@@ -247,17 +247,17 @@ export default function Onboarding() {
               </div>
 
               <div className="space-y-6">
-                <div 
+                <div
                   className={cn(
                     "border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-colors text-center cursor-pointer",
                     formData.resume.file ? "border-primary/50 bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
                   )}
                   onClick={() => document.getElementById("resume-upload")?.click()}
                 >
-                  <input 
-                    type="file" 
-                    id="resume-upload" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    id="resume-upload"
+                    className="hidden"
                     accept=".pdf,.docx"
                     onChange={(e) => {
                       const file = e.target.files?.[0]
@@ -290,10 +290,10 @@ export default function Onboarding() {
                     <Label htmlFor="linkedin">LinkedIn Profile URL</Label>
                     <div className="relative">
                       <Link2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        id="linkedin" 
-                        className="pl-10" 
-                        placeholder="linkedin.com/in/username" 
+                      <Input
+                        id="linkedin"
+                        className="pl-10"
+                        placeholder="linkedin.com/in/username"
                         value={formData.resume.linkedin}
                         onChange={(e) => setFormData(p => ({ ...p, resume: { ...p.resume, linkedin: e.target.value } }))}
                       />
@@ -304,10 +304,10 @@ export default function Onboarding() {
                     <Label htmlFor="portfolio">Portfolio / Website URL</Label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        id="portfolio" 
-                        className="pl-10" 
-                        placeholder="yourportfolio.com" 
+                      <Input
+                        id="portfolio"
+                        className="pl-10"
+                        placeholder="yourportfolio.com"
                         value={formData.resume.portfolio}
                         onChange={(e) => setFormData(p => ({ ...p, resume: { ...p.resume, portfolio: e.target.value } }))}
                       />
@@ -348,8 +348,8 @@ export default function Onboarding() {
               <div className="space-y-6">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search skills..." 
+                  <Input
+                    placeholder="Search skills..."
                     className="pl-10 rounded-xl"
                     value={skillSearch}
                     onChange={(e) => setSkillSearch(e.target.value)}

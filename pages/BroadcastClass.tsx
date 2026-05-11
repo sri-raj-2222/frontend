@@ -12,17 +12,17 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 const CATEGORIES = ['General', 'Development', 'Design', 'Marketing', 'Data Science', 'Business', 'Language', 'Music', 'Other']
 const DIFFICULTIES = ['beginner', 'intermediate', 'advanced']
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-const WEEK_DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const WEEK_DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 const STATUS_COLORS: Record<string, string> = {
-  draft:     'text-muted-foreground bg-secondary border-border',
+  draft: 'text-muted-foreground bg-secondary border-border',
   published: 'text-blue-600 bg-blue-50 border-blue-200',
-  live:      'text-red-600 bg-red-50 border-red-200',
+  live: 'text-red-600 bg-red-50 border-red-200',
   completed: 'text-green-600 bg-green-50 border-green-200',
   cancelled: 'text-orange-600 bg-orange-50 border-orange-200',
 }
@@ -69,12 +69,12 @@ function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
   }, [open])
 
   const daysInMonth = new Date(viewing.year, viewing.month + 1, 0).getDate()
-  const firstDay   = new Date(viewing.year, viewing.month, 1).getDay()
-  const today      = new Date()
-  const todayStr   = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
+  const firstDay = new Date(viewing.year, viewing.month, 1).getDay()
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   const toISO = (y: number, m: number, d: number) =>
-    `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+    `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
   const isPast = (day: number) => toISO(viewing.year, viewing.month, day) < todayStr
 
@@ -159,8 +159,8 @@ function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
                 const day = i + 1
                 const iso = toISO(viewing.year, viewing.month, day)
                 const isSelected = value === iso
-                const isToday    = iso === todayStr
-                const past       = isPast(day)
+                const isToday = iso === todayStr
+                const past = isPast(day)
 
                 return (
                   <button
@@ -170,7 +170,7 @@ function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
                     disabled={past}
                     className={cn(
                       "h-9 w-full rounded-xl text-sm font-bold transition-all",
-                      past       && "text-muted-foreground/25 cursor-not-allowed",
+                      past && "text-muted-foreground/25 cursor-not-allowed",
                       !past && !isSelected && "hover:bg-primary/10 hover:text-primary",
                       isToday && !isSelected && "border border-primary/50 text-primary",
                       isSelected && "bg-primary text-primary-foreground font-black shadow-md shadow-primary/30"
@@ -185,7 +185,7 @@ function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
             {/* Quick picks */}
             <div className="border-t border-border px-5 py-3 flex gap-3">
               {[
-                { label: '+1 week',  days: 7  },
+                { label: '+1 week', days: 7 },
                 { label: '+2 weeks', days: 14 },
                 { label: '+1 month', days: 30 },
               ].map(({ label, days }) => (
@@ -222,16 +222,16 @@ const EMPTY_FORM = {
 export default function BroadcastClass() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [view, setView]           = useState<'list' | 'create' | 'manage'>('list')
+  const [view, setView] = useState<'list' | 'create' | 'manage'>('list')
   const [myClasses, setMyClasses] = useState<Broadcast[]>([])
-  const [selected, setSelected]   = useState<Broadcast | null>(null)
+  const [selected, setSelected] = useState<Broadcast | null>(null)
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [loading, setLoading]     = useState(true)
+  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [attendances, setAttendances] = useState<Record<string, boolean>>({})
-  const [success, setSuccess]     = useState(false)
-  const [form, setForm]           = useState(EMPTY_FORM)
+  const [success, setSuccess] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
 
   const loadMyClasses = useCallback(async () => {
     if (!user?.id) return
@@ -273,7 +273,7 @@ export default function BroadcastClass() {
           ...form,
           status: 'published',
           posted_by: user.id,
-          userName:  user.name,
+          userName: user.name,
           userAvatar: user.profilePic
         })
       })
@@ -546,13 +546,13 @@ export default function BroadcastClass() {
 
   // ── MANAGE VIEW ─────────────────────────────────────────────────────────────
   if (view === 'manage' && selected) {
-    const isDraft     = selected.status === 'draft'
+    const isDraft = selected.status === 'draft'
     const isPublished = selected.status === 'published'
-    const isLive      = selected.status === 'live'
+    const isLive = selected.status === 'live'
     const isCompleted = selected.status === 'completed'
     const attendedCount = enrollments.filter(e => e.status === 'attended').length
-    const totalEarned   = attendedCount * (selected.reward_credits || 0)
-    const jitsiUrl      = `https://meet.jit.si/ShareSphere-${selected.id}`
+    const totalEarned = attendedCount * (selected.reward_credits || 0)
+    const jitsiUrl = `https://meet.jit.si/ShareSphere-${selected.id}`
 
     return (
       <div className="min-h-screen bg-background text-foreground transition-colors">
@@ -789,7 +789,7 @@ export default function BroadcastClass() {
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1,2,3].map(i => <div key={i} className="h-64 rounded-[32px] bg-secondary/50 animate-pulse border border-border" />)}
+              {[1, 2, 3].map(i => <div key={i} className="h-64 rounded-[32px] bg-secondary/50 animate-pulse border border-border" />)}
             </div>
           ) : myClasses.length === 0 ? (
             <div className="text-center py-32 border border-dashed border-border rounded-[40px]">

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
 import { io } from "socket.io-client"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 const socket = io(API)
 
 interface ChatMessage {
@@ -198,7 +198,7 @@ export default function BroadcastChat() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: data.improved })
-      }).catch(() => {})
+      }).catch(() => { })
 
       setActiveTab('notes')
       setTimeout(() => setAiResult(null), 8000)

@@ -7,7 +7,7 @@ import {
   ArrowLeft, Calendar, ExternalLink,
 } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 
 // ── User Profile Modal ────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
               <div className="flex items-center gap-3">
                 {data.profile_pic
                   ? <img src={data.profile_pic} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-border" />
-                  : <div className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">{(data.name||'?')[0]}</div>}
+                  : <div className="h-14 w-14 rounded-2xl bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">{(data.name || '?')[0]}</div>}
                 <div>
                   <p className="font-bold text-foreground">{data.name}</p>
                   <p className="text-xs text-muted-foreground">{data.email}</p>
@@ -59,11 +59,9 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
                   { label: 'Completed', value: data.projects_completed ?? 0 },
                   { label: 'Verified', value: data.verified ? 'Yes' : 'No' },
                 ].map(i => (
-                  <div key={i.label} className={`bg-secondary/30 rounded-xl p-2.5 ${
-                    i.label === 'Reports' && Number(i.value) > 0 ? 'bg-destructive/10' : ''}`}>
+                  <div key={i.label} className={`bg-secondary/30 rounded-xl p-2.5 ${i.label === 'Reports' && Number(i.value) > 0 ? 'bg-destructive/10' : ''}`}>
                     <p className="text-[9px] text-muted-foreground uppercase tracking-wider">{i.label}</p>
-                    <p className={`text-sm font-bold mt-0.5 ${
-                      i.label === 'Reports' && Number(i.value) > 0 ? 'text-destructive' : 'text-foreground'}`}>{i.value}</p>
+                    <p className={`text-sm font-bold mt-0.5 ${i.label === 'Reports' && Number(i.value) > 0 ? 'text-destructive' : 'text-foreground'}`}>{i.value}</p>
                   </div>
                 ))}
               </div>
@@ -72,8 +70,7 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Skills</p>
                   <div className="flex flex-wrap gap-1.5">
                     {data.skills.slice(0, 8).map((s: any) => (
-                      <span key={s.id || s.skill_name} className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
-                        s.skill_type === 'offering' ? 'bg-primary/10 text-primary' : 'bg-amber-500/10 text-amber-500'}`}>
+                      <span key={s.id || s.skill_name} className={`text-[10px] font-bold px-2 py-1 rounded-lg ${s.skill_type === 'offering' ? 'bg-primary/10 text-primary' : 'bg-amber-500/10 text-amber-500'}`}>
                         {s.skill_name}
                       </span>
                     ))}
@@ -89,17 +86,17 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending:      "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
   under_review: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  resolved:     "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  dismissed:    "bg-secondary text-muted-foreground border-border",
+  resolved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  dismissed: "bg-secondary text-muted-foreground border-border",
 }
 
 const ACTION_CONFIGS = [
-  { type: "dismiss",      label: "Dismiss",       icon: CheckCircle2, cls: "border-border text-muted-foreground hover:border-primary hover:text-primary", duration: false },
-  { type: "warn",         label: "Issue Warning", icon: ShieldAlert,  cls: "border-amber-500/30 text-amber-400 hover:bg-amber-500/10", duration: false },
-  { type: "temp_ban",     label: "Temp Ban",      icon: Clock,        cls: "border-orange-500/30 text-orange-400 hover:bg-orange-500/10", duration: true },
-  { type: "permanent_ban",label: "Permanent Ban", icon: ShieldX,      cls: "border-destructive/30 text-destructive hover:bg-destructive/10", duration: false },
+  { type: "dismiss", label: "Dismiss", icon: CheckCircle2, cls: "border-border text-muted-foreground hover:border-primary hover:text-primary", duration: false },
+  { type: "warn", label: "Issue Warning", icon: ShieldAlert, cls: "border-amber-500/30 text-amber-400 hover:bg-amber-500/10", duration: false },
+  { type: "temp_ban", label: "Temp Ban", icon: Clock, cls: "border-orange-500/30 text-orange-400 hover:bg-orange-500/10", duration: true },
+  { type: "permanent_ban", label: "Permanent Ban", icon: ShieldX, cls: "border-destructive/30 text-destructive hover:bg-destructive/10", duration: false },
 ]
 
 function fmtDate(d: string) {
@@ -118,10 +115,9 @@ function StatusBadge({ status }: { status: string }) {
 function FlagIcon({ color, label }: { color: string; label: string }) {
   if (color === 'none') return null
   return (
-    <span title={label} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[9px] font-bold border ${
-      color === 'red'    ? 'bg-destructive/10 border-destructive/20 text-destructive' :
-      color === 'orange' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
-                           'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
+    <span title={label} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[9px] font-bold border ${color === 'red' ? 'bg-destructive/10 border-destructive/20 text-destructive' :
+        color === 'orange' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
+          'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
       <Flag className="h-2.5 w-2.5" />{label}
     </span>
   )
@@ -132,13 +128,12 @@ function UserChip({ profile, flagCount = 0, onClick }: { profile: any; flagCount
   const flagColor = flagCount >= 3 ? 'red' : flagCount >= 1 ? 'yellow' : 'none'
   const flagLabel = flagCount >= 3 ? `${flagCount} reports` : flagCount >= 1 ? `${flagCount} report` : ''
   return (
-    <button onClick={onClick} className={`flex items-center gap-2 text-left ${
-      onClick ? 'hover:opacity-80 transition-opacity cursor-pointer' : 'cursor-default'}`}>
+    <button onClick={onClick} className={`flex items-center gap-2 text-left ${onClick ? 'hover:opacity-80 transition-opacity cursor-pointer' : 'cursor-default'}`}>
       {profile.profile_pic
         ? <img src={profile.profile_pic} className="h-7 w-7 rounded-full object-cover ring-1 ring-border" />
         : <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
-            {(profile.name || "?")[0].toUpperCase()}
-          </div>
+          {(profile.name || "?")[0].toUpperCase()}
+        </div>
       }
       <div>
         <div className="flex items-center gap-1.5">
@@ -156,15 +151,15 @@ function UserChip({ profile, flagCount = 0, onClick }: { profile: any; flagCount
 function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
   reportId: string; adminSession: any; onBack: () => void; onActionDone: () => void
 }) {
-  const [data, setData]             = useState<any>(null)
-  const [loading, setLoading]       = useState(true)
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [actionType, setActionType] = useState("")
-  const [adminNote, setAdminNote]   = useState("")
+  const [adminNote, setAdminNote] = useState("")
   const [durationDays, setDurationDays] = useState(7)
   const [submitting, setSubmitting] = useState(false)
-  const [actionMsg, setActionMsg]   = useState<{ text: string; ok: boolean } | null>(null)
+  const [actionMsg, setActionMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [profileModalId, setProfileModalId] = useState<string | null>(null)
-  const [showChat, setShowChat]     = useState(false)
+  const [showChat, setShowChat] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -307,8 +302,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
               {chatHistory.map((msg: any) => {
                 const isEvidence = report.evidence_message_ids?.includes(msg.id)
                 return (
-                  <div key={msg.id || msg.content} className={`px-3 py-2 rounded-xl text-xs ${
-                    isEvidence ? 'bg-destructive/10 border border-destructive/30' : 'bg-secondary/30'}`}>
+                  <div key={msg.id || msg.content} className={`px-3 py-2 rounded-xl text-xs ${isEvidence ? 'bg-destructive/10 border border-destructive/30' : 'bg-secondary/30'}`}>
                     <span className={`font-bold mr-2 ${isEvidence ? 'text-destructive' : 'text-primary'}`}>
                       {msg.sender_name || 'User'}{isEvidence && ' 🚩'}
                     </span>
@@ -443,14 +437,14 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
 
 // ── Main Reports Panel ────────────────────────────────────────────────────────
 export default function ReportsPanel() {
-  const [reports, setReports]         = useState<any[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [selectedId, setSelectedId]   = useState<string | null>(null)
-  const [statusFilter, setStatusFilter]   = useState("")
-  const [reasonFilter, setReasonFilter]   = useState("")
-  const [search, setSearch]           = useState("")
-  const [dateFrom, setDateFrom]       = useState("")
-  const [dateTo, setDateTo]           = useState("")
+  const [reports, setReports] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState("")
+  const [reasonFilter, setReasonFilter] = useState("")
+  const [search, setSearch] = useState("")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [profileModalId, setProfileModalId] = useState<string | null>(null)
 
@@ -539,14 +533,14 @@ export default function ReportsPanel() {
               <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
                 className="px-3 py-2 bg-secondary/50 border border-border rounded-xl text-sm text-foreground outline-none appearance-none cursor-pointer">
                 <option value="">All Statuses</option>
-                {["pending","under_review","resolved","dismissed"].map(s => (
-                  <option key={s} value={s}>{s.replace("_"," ")}</option>
+                {["pending", "under_review", "resolved", "dismissed"].map(s => (
+                  <option key={s} value={s}>{s.replace("_", " ")}</option>
                 ))}
               </select>
               <select value={reasonFilter} onChange={e => setReasonFilter(e.target.value)}
                 className="px-3 py-2 bg-secondary/50 border border-border rounded-xl text-sm text-foreground outline-none appearance-none cursor-pointer">
                 <option value="">All Reasons</option>
-                {["Harassment / Hate speech","Spam or scam","Inappropriate content","Impersonation","Sharing personal info","Threatening behavior","Other"].map(r => (
+                {["Harassment / Hate speech", "Spam or scam", "Inappropriate content", "Impersonation", "Sharing personal info", "Threatening behavior", "Other"].map(r => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
@@ -581,7 +575,7 @@ export default function ReportsPanel() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-secondary/20">
-                  {["Reporter","Reported User","Reason","Date","Reports","Status","Action"].map(h => (
+                  {["Reporter", "Reported User", "Reason", "Date", "Reports", "Status", "Action"].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>

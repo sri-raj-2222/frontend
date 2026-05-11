@@ -19,7 +19,7 @@ timeout /t 4 /nobreak >nul
 
 echo.
 echo  ShareSphere is running!
-echo  Backend  -- http://localhost:5000
+echo  Backend  -- https://backend-a41z.onrender.com
 echo  Frontend -- http://localhost:5173
 echo.
 echo  Two minimized windows are keeping the servers alive.

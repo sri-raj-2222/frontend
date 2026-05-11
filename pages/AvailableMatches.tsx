@@ -27,10 +27,10 @@ export default function AvailableMatches() {
     if (!userId) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/matches/${userId}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/matches/${userId}`)
       const data = await res.json()
       setCurrentUser(data.currentUser)
-      
+
       setMatches(prev => {
         const newMatches = data.matches || []
         return newMatches.map((m: any) => {
@@ -87,12 +87,12 @@ export default function AvailableMatches() {
 
   const handleRequest = async (match: MatchResult) => {
     if (requestedTasks.includes(match.task?.id || match.peer.id)) return
-    
+
     const targetId = match.task?.id || match.peer.id
     setRequestedTasks(prev => [...prev, targetId])
-    
+
     try {
-      const offeringSkills  = match.iOfferWhatTheyNeed.join(', ')
+      const offeringSkills = match.iOfferWhatTheyNeed.join(', ')
       const notificationMsg = `${user?.name || 'Someone'} wants to exchange ${offeringSkills} for your ${match.task?.title || 'task'}`
 
       // 0 — Ensure current user exists in `users` table (FK: task_requests.requester_id → users.id)
@@ -123,10 +123,10 @@ export default function AvailableMatches() {
       const { data: newReq, error: insertErr } = await supabase
         .from('task_requests')
         .insert({
-          task_id:      match.task?.id || null,
+          task_id: match.task?.id || null,
           requester_id: user?.id,
-          owner_id:     match.peer.id,
-          status:       'pending',
+          owner_id: match.peer.id,
+          status: 'pending',
         })
         .select('id')
         .single()
@@ -154,15 +154,15 @@ export default function AvailableMatches() {
           .from('notifications')
           .insert({
             user_id: match.peer.id,
-            type:    'task_request',
-            title:   'New Connection Request',
+            type: 'task_request',
+            title: 'New Connection Request',
             message: notificationMsg,
             data: {
-              task_id:        match.task?.id ?? null,
-              request_id:     requestId,
-              requester_id:   user?.id,
+              task_id: match.task?.id ?? null,
+              request_id: requestId,
+              requester_id: user?.id,
               requester_name: user?.name,
-              offering:       offeringSkills,
+              offering: offeringSkills,
             },
             is_read: false,
           })
@@ -172,27 +172,27 @@ export default function AvailableMatches() {
       }
 
       // 4 — Ping Express server → emits socket event to owner's room immediately
-      fetch('http://localhost:5000/api/tasks/null/request', {
-        method:  'POST',
+      fetch('https://backend-a41z.onrender.com/api/tasks/null/request', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requested_by:        user?.id,
-          requesterName:       user?.name || 'Someone',
-          requesterAvatar:     user?.profilePic || null,
-          target_user_id:      match.peer.id,
-          task_title:          match.task?.title || 'Skill Exchange',
-          task_offering:       offeringSkills,
-          task_wanting:        match.theyOfferWhatINeed.join(', '),
-          owner_name:          match.peer.name,
-          owner_avatar:        null,
-          message:             notificationMsg,
+          requested_by: user?.id,
+          requesterName: user?.name || 'Someone',
+          requesterAvatar: user?.profilePic || null,
+          target_user_id: match.peer.id,
+          task_title: match.task?.title || 'Skill Exchange',
+          task_offering: offeringSkills,
+          task_wanting: match.theyOfferWhatINeed.join(', '),
+          owner_name: match.peer.name,
+          owner_avatar: null,
+          message: notificationMsg,
           supabase_request_id: requestId,
         }),
-      }).catch(() => {}) // fire-and-forget
+      }).catch(() => { }) // fire-and-forget
 
       addNotification(`Request sent to ${match.peer.name}!`, 'success')
-      
-    } catch (err) { 
+
+    } catch (err) {
       console.error('[Connect Now] Error:', err)
       setRequestedTasks(prev => prev.filter(id => id !== targetId))
       addNotification('Failed to send request. Please try again.', 'info')
@@ -219,7 +219,7 @@ export default function AvailableMatches() {
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-background">
       <Navbar />
       <main className="max-w-7xl mx-auto px-6 pt-24 pb-24">
-        
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-foreground mb-2">Available Matches</h1>
@@ -274,7 +274,7 @@ export default function AvailableMatches() {
                 <AnimatePresence mode="popLayout">
                   {filteredMatches.map((match, idx) => {
                     const isRequested = match.requestStatus === 'pending' || match.requestStatus === 'accepted' || requestedTasks.includes(match.task?.id || match.peer.id)
-                    
+
                     return (
                       <motion.div
                         key={match.peer.id}
@@ -325,12 +325,12 @@ export default function AvailableMatches() {
                               <MessageSquare className="h-3.5 w-3.5" /> Open Messenger
                             </Button>
                           ) : (
-                            <Button 
+                            <Button
                               onClick={() => handleRequest(match)}
                               disabled={isRequested}
                               style={{
-                                opacity:  isRequested ? 0.5 : 1,
-                                cursor:   isRequested ? 'not-allowed' : 'pointer',
+                                opacity: isRequested ? 0.5 : 1,
+                                cursor: isRequested ? 'not-allowed' : 'pointer',
                                 background: isRequested ? '#888' : undefined
                               }}
                               className={cn(

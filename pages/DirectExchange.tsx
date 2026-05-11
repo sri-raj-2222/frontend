@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
+import {
   Search, Sparkles, RefreshCcw, AlertCircle, Clock, CheckCircle2, MessageSquare, History, User2, Zap
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
@@ -49,7 +49,7 @@ export default function DirectExchange() {
   const [recReasons, setRecReasons] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [showIntake, setShowIntake] = useState(false)
-  
+
   // Track requests sent by ME to disable buttons
   const [requestedTasks, setRequestedTasks] = useState<string[]>([])
 
@@ -64,18 +64,18 @@ export default function DirectExchange() {
         User Needs: ${JSON.stringify(myNeeds)}
 
         Available Pool:
-        ${JSON.stringify(allPossible.slice(0, 15).map(t => ({ 
-          id: t.id, 
-          name: t.users?.name,
-          offers: t.offering, 
-          wants: t.wanting 
-        })))}
+        ${JSON.stringify(allPossible.slice(0, 15).map(t => ({
+        id: t.id,
+        name: t.users?.name,
+        offers: t.offering,
+        wants: t.wanting
+      })))}
 
         Find the 3 BEST MUTUAL handshakes.
         Return JSON ONLY:
         { "top_matches": [ { "task_id": "id", "reason": "why" } ] }
       `
-      const res = await fetch("http://localhost:5000/api/ai/recommend", {
+      const res = await fetch("https://backend-a41z.onrender.com/api/ai/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: geminiPrompt })
@@ -111,19 +111,19 @@ export default function DirectExchange() {
       //   AND
       //   Person B's offering  ∩  Person A's wanting  ≠ ∅
       //   → only then recommend Person B to Person A (and vice-versa)
-      const recRes = await fetch(`http://localhost:5000/api/recommendations/${user.id}`)
+      const recRes = await fetch(`https://backend-a41z.onrender.com/api/recommendations/${user.id}`)
       const matched: Task[] = recRes.ok ? await recRes.json().catch(() => []) : []
 
       // Step 3 — if SkillIntake passed an override skill, narrow further
       const filtered: Task[] = overrideWanting
         ? matched.filter((t: Task) => {
-            const offers = (Array.isArray(t.offering) ? t.offering : [t.offering || ''])
-              .map((s: string) => s.toLowerCase())
-            return offers.some(s =>
-              s.includes(overrideWanting.toLowerCase()) ||
-              overrideWanting.toLowerCase().includes(s)
-            )
-          })
+          const offers = (Array.isArray(t.offering) ? t.offering : [t.offering || ''])
+            .map((s: string) => s.toLowerCase())
+          return offers.some(s =>
+            s.includes(overrideWanting.toLowerCase()) ||
+            overrideWanting.toLowerCase().includes(s)
+          )
+        })
         : matched
 
       setTasks(filtered)
@@ -153,30 +153,30 @@ export default function DirectExchange() {
     if (!silent) setLoading(true)
     try {
       // 1. Fetch Requests (Incoming/Outgoing)
-      const res = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
       const data = await res.json()
-      
+
       // 2. Fetch Own Posts
-      const postRes = await fetch(`http://localhost:5000/api/user/${user.id}/posts`)
+      const postRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/posts`)
       const ownPosts = await postRes.json()
 
       const combined = [
-        ...(data.incoming || []), 
+        ...(data.incoming || []),
         ...(data.outgoing || []),
-        ...(ownPosts || []).map((p: { title: string; offering: string | string[]; wanting: string | string[] }) => ({ 
-          ...p, 
-          isOwnTask: true, 
-          task: { 
-            title: p.title, 
+        ...(ownPosts || []).map((p: { title: string; offering: string | string[]; wanting: string | string[] }) => ({
+          ...p,
+          isOwnTask: true,
+          task: {
+            title: p.title,
             offering: Array.isArray(p.offering) ? p.offering.join(", ") : p.offering,
             wanting: Array.isArray(p.wanting) ? p.wanting.join(", ") : p.wanting
-          } 
+          }
         }))
-      ].sort((a, b) => 
+      ].sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
-      
-      const roomRes = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+
+      const roomRes = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
       const rooms = await roomRes.json()
 
       const enriched = combined.map((item: ActivityItem) => {
@@ -204,7 +204,7 @@ export default function DirectExchange() {
     if (user?.id) {
       loadFeed()
       loadMyActivity()
-      
+
       // Subscribe to re-enable button on decline
       const channel = supabase
         .channel(`requests:${user.id}`)
@@ -226,8 +226,8 @@ export default function DirectExchange() {
           setRecommendations(prev => prev.filter(t => t.id !== taskId))
         })
       }
-      
-      return () => { 
+
+      return () => {
         supabase.removeChannel(channel)
         if (socket) {
           socket.off('notification:new')
@@ -252,23 +252,23 @@ export default function DirectExchange() {
 
   const handleRequest = async (task: Task) => {
     if (requestedTasks.includes(task.id)) return
-    
+
     // Step 1 — Disable the button immediately on click
     setRequestedTasks(prev => [...prev, task.id])
-    
+
     try {
       // Step 2 — Insert into task_requests
       const { data: reqData, error: reqError } = await supabase
         .from('task_requests')
         .insert({
-          task_id:      task.id,
+          task_id: task.id,
           requester_id: user?.id,
-          owner_id:     task.user_id,
-          status:       'pending'
+          owner_id: task.user_id,
+          status: 'pending'
         })
         .select()
         .single()
-      
+
       if (reqError) {
         console.error('Request insert failed:', reqError)
         setRequestedTasks(prev => prev.filter(id => id !== task.id))
@@ -288,19 +288,19 @@ export default function DirectExchange() {
       await supabase
         .from('notifications')
         .insert({
-          user_id:   task.user_id,
-          type:      'task_request',
-          title:     'New Connection Request',
-          message:   notificationMessage,
+          user_id: task.user_id,
+          type: 'task_request',
+          title: 'New Connection Request',
+          message: notificationMessage,
           data: {
-            task_id:       task.id,
-            task_title:    task.title,
-            requester_id:  user?.id,
+            task_id: task.id,
+            task_title: task.title,
+            requester_id: user?.id,
             requester_name: user?.name,
-            request_id:    reqData.id,
-            offering:      offering
+            request_id: reqData.id,
+            offering: offering
           },
-          is_read:   false
+          is_read: false
         })
 
       // NEW: Send Real-time Socket Notification
@@ -315,8 +315,8 @@ export default function DirectExchange() {
       }
 
       addNotification(`Request sent for ${task.title}!`, 'success')
-      
-    } catch (err) { 
+
+    } catch (err) {
       console.error('[DirectExchange] Error:', err)
       setRequestedTasks(prev => prev.filter(id => id !== task.id))
     }
@@ -324,12 +324,12 @@ export default function DirectExchange() {
 
   const handleUpdateStatus = async (item: ActivityItem, status: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/requests/${item.id}`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/requests/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
       })
-      
+
       if (res.ok) {
         const data = await res.json()
         if (status === 'accepted' && data.room?.id) {
@@ -411,7 +411,7 @@ export default function DirectExchange() {
                 {myActivity.map((item) => (
                   <div key={item.id} className="p-6 rounded-[32px] border border-border bg-card/30 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-primary/30 transition-all">
                     <div className="flex items-center gap-4">
-                      <div 
+                      <div
                         onClick={() => {
                           const targetId = item.isOwnTask ? user?.id : (item.owner_id === user?.id ? item.requester_id : item.owner_id);
                           if (targetId) navigate(`/profile?id=${targetId}`);
@@ -420,7 +420,7 @@ export default function DirectExchange() {
                       >
                         {item.isOwnTask ? <User2 className="h-6 w-6" /> : (item.owner_id === user?.id ? item.requester?.name?.[0] : item.owner?.name?.[0])}
                       </div>
-                      <div 
+                      <div
                         onClick={() => {
                           const targetId = item.isOwnTask ? user?.id : (item.owner_id === user?.id ? item.requester_id : item.owner_id);
                           if (targetId) navigate(`/profile?id=${targetId}`);
@@ -490,16 +490,16 @@ export default function DirectExchange() {
               {recommendations.map((task) => {
                 const isRequested = requestedTasks.includes(task.id)
                 return (
-                  <motion.div 
-                    key={`rec-${task.id}`} 
-                    initial={{ opacity: 0, y: 20 }} 
-                    animate={{ opacity: 1, y: 0 }} 
+                  <motion.div
+                    key={`rec-${task.id}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="p-8 rounded-[40px] border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/[0.05] to-amber-500/[0.02] flex flex-col relative overflow-hidden group shadow-xl"
                   >
                     <div className="absolute top-4 right-4 h-8 w-8 bg-amber-500 text-white rounded-full flex items-center justify-center font-black text-xs shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform">
                       AI
                     </div>
-                    <div 
+                    <div
                       onClick={() => navigate(`/profile?id=${task.user_id}`)}
                       className="flex items-center gap-4 mb-6 cursor-pointer group/user"
                     >
@@ -516,12 +516,12 @@ export default function DirectExchange() {
                       <Sparkles className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                       <p className="text-[11px] font-bold text-amber-800 italic leading-relaxed">"{recReasons[task.id]}"</p>
                     </div>
-                    <Button 
-                      onClick={() => handleRequest(task)} 
+                    <Button
+                      onClick={() => handleRequest(task)}
                       disabled={isRequested}
                       style={{
-                        opacity:  isRequested ? 0.5 : 1,
-                        cursor:   isRequested ? 'not-allowed' : 'pointer',
+                        opacity: isRequested ? 0.5 : 1,
+                        cursor: isRequested ? 'not-allowed' : 'pointer',
                         background: isRequested ? '#888' : undefined
                       }}
                       className={cn(
@@ -541,7 +541,7 @@ export default function DirectExchange() {
         <h2 className="text-2xl font-black tracking-tight mb-8">Available Matches</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {loading ? (
-             <div className="col-span-full py-20 text-center font-black text-muted-foreground animate-pulse">Deep scanning profiles for handshakes...</div>
+            <div className="col-span-full py-20 text-center font-black text-muted-foreground animate-pulse">Deep scanning profiles for handshakes...</div>
           ) : filteredTasks.length === 0 && recommendations.length === 0 ? (
             <div className="col-span-full py-32 text-center rounded-[48px] border-2 border-dashed border-border bg-secondary/10"><AlertCircle className="h-12 w-12 mx-auto mb-6 opacity-20" /><h3 className="text-xl font-black mb-2">No direct matches yet</h3><p className="text-muted-foreground font-medium">We're searching for someone who offers what you need.</p></div>
           ) : (
@@ -549,7 +549,7 @@ export default function DirectExchange() {
               const isRequested = requestedTasks.includes(task.id)
               return (
                 <motion.div key={task.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8 rounded-[40px] border border-border bg-card/50 hover:border-primary/40 transition-all">
-                  <div 
+                  <div
                     onClick={() => navigate(`/profile?id=${task.user_id}`)}
                     className="flex items-center gap-4 mb-6 cursor-pointer group/user"
                   >
@@ -568,8 +568,8 @@ export default function DirectExchange() {
                       <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase">Has: {task.offering}</span>
                       <span className="px-3 py-1 rounded-full bg-secondary text-muted-foreground text-[10px] font-black uppercase">Needs: {task.wanting}</span>
                     </div>
-                    <Button 
-                      onClick={() => handleRequest(task)} 
+                    <Button
+                      onClick={() => handleRequest(task)}
                       disabled={isRequested}
                       className="w-full h-14 rounded-2xl bg-foreground text-background font-black hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-50"
                     >

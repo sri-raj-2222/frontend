@@ -80,17 +80,17 @@ function getSkillSuggestions(query: string, prioritySkills: string[] = []): stri
 export default function SkillIntake({ onComplete }: SkillIntakeProps) {
   const { user } = useAuth()
 
-  const [wanting, setWanting]                       = useState("")
-  const [wantingConfirmed, setWantingConfirmed]     = useState(false)
+  const [wanting, setWanting] = useState("")
+  const [wantingConfirmed, setWantingConfirmed] = useState(false)
   const [wantingSuggestions, setWantingSuggestions] = useState<string[]>([])
 
-  const [offering, setOffering]                       = useState("")
-  const [offeringConfirmed, setOfferingConfirmed]     = useState(false)
+  const [offering, setOffering] = useState("")
+  const [offeringConfirmed, setOfferingConfirmed] = useState(false)
   const [offeringSuggestions, setOfferingSuggestions] = useState<string[]>([])
 
   const [profileSkills, setProfileSkills] = useState<string[]>([])
-  const [submitting, setSubmitting]       = useState(false)
-  const [showSuccess, setShowSuccess]     = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   // Load profile skills silently — used as priority hints only, never blocks the form
   useEffect(() => {
@@ -123,38 +123,38 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
     if (!canSubmit || submitting) return
     setSubmitting(true)
     try {
-      const wantingVal  = wanting.trim()
+      const wantingVal = wanting.trim()
       const offeringVal = offering.trim()
 
       // Use upsert so re-posting the same skill pair doesn't throw a 409 conflict
       const { error: taskErr } = await supabase.from('tasks').upsert(
         {
-          user_id:     user?.id,
-          title:       `Learning ${wantingVal}`,
+          user_id: user?.id,
+          title: `Learning ${wantingVal}`,
           description: `Looking for help with ${wantingVal}. I can offer ${offeringVal} in exchange.`,
-          offering:    offeringVal,
-          wanting:     wantingVal,
-          status:      'open',
-          type:        'direct',
+          offering: offeringVal,
+          wanting: wantingVal,
+          status: 'open',
+          type: 'direct',
         },
         { onConflict: 'user_id,title', ignoreDuplicates: false }
       )
       if (taskErr) console.warn('[SkillIntake] Supabase task upsert warning:', taskErr.message)
 
       // Mirror to local Express DB (non-blocking — don't throw on failure)
-      fetch("http://localhost:5000/api/tasks", {
-        method:  "POST",
+      fetch("https://backend-a41z.onrender.com/api/tasks", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          title:       `Learning ${wantingVal}`,
+        body: JSON.stringify({
+          title: `Learning ${wantingVal}`,
           description: `Looking for help with ${wantingVal}. I can offer ${offeringVal} in exchange.`,
-          offering:    [offeringVal],
-          wanting:     [wantingVal],
-          posted_by:   user?.id,
-          userName:    user?.name,
-          userAvatar:  user?.profilePic || null,
+          offering: [offeringVal],
+          wanting: [wantingVal],
+          posted_by: user?.id,
+          userName: user?.name,
+          userAvatar: user?.profilePic || null,
         }),
-      }).catch(() => {})
+      }).catch(() => { })
 
       // Save offering skill as a profile hint — ignore if unique constraint already exists
       try {

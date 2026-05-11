@@ -2,11 +2,11 @@
 import { Navigate } from "react-router-dom"
 import { Shield } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)
-  const [isAdmin, setIsAdmin]   = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const raw = localStorage.getItem("admin_session")

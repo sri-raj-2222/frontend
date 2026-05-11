@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 const PAGE_SIZE = 10
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ function initials(name: string) {
 const GRAD = [
   "from-violet-500 to-purple-600", "from-blue-500 to-cyan-600",
   "from-emerald-500 to-green-600", "from-orange-500 to-amber-600",
-  "from-pink-500 to-rose-600",     "from-indigo-500 to-blue-600",
+  "from-pink-500 to-rose-600", "from-indigo-500 to-blue-600",
 ]
 function grad(id: string) {
   const h = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0)
@@ -79,9 +79,9 @@ function Avatar({ user, size = "md" }: { user: EnrichedUser; size?: "sm" | "md" 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, string> = {
     freelancer: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    client:     "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    both:       "bg-primary/10 text-primary border-primary/20",
-    user:       "bg-secondary text-muted-foreground border-border",
+    client: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    both: "bg-primary/10 text-primary border-primary/20",
+    user: "bg-secondary text-muted-foreground border-border",
   }
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border capitalize ${map[role?.toLowerCase()] ?? map.user}`}>
@@ -204,17 +204,17 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
 
   const chartData = [
     { label: "Projects", value: user.total_projects },
-    { label: "Done",     value: user.projects_completed },
+    { label: "Done", value: user.projects_completed },
     { label: "Sessions", value: user.sessions_count },
-    { label: "Msgs",     value: Math.min(user.messages_count, 99) },
-    { label: "Reviews",  value: user.ratings_count },
+    { label: "Msgs", value: Math.min(user.messages_count, 99) },
+    { label: "Reviews", value: user.ratings_count },
   ]
 
   const TABS = [
-    { id: "profile" as const,  label: "Profile",  Icon: User          },
-    { id: "activity" as const, label: "Activity", Icon: Activity      },
-    { id: "ratings"  as const, label: "Ratings",  Icon: Star          },
-    { id: "reports"  as const, label: "Reports",  Icon: Flag          },
+    { id: "profile" as const, label: "Profile", Icon: User },
+    { id: "activity" as const, label: "Activity", Icon: Activity },
+    { id: "ratings" as const, label: "Ratings", Icon: Star },
+    { id: "reports" as const, label: "Reports", Icon: Flag },
   ]
 
   return (
@@ -284,10 +284,10 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: "Joined",          value: fmtDate(user.joined_at) },
-                      { label: "Last Active",     value: timeAgo(user.last_active) },
-                      { label: "Total Projects",  value: user.total_projects },
-                      { label: "Completed",       value: user.projects_completed },
+                      { label: "Joined", value: fmtDate(user.joined_at) },
+                      { label: "Last Active", value: timeAgo(user.last_active) },
+                      { label: "Total Projects", value: user.total_projects },
+                      { label: "Completed", value: user.projects_completed },
                     ].map(i => (
                       <div key={i.label} className="bg-secondary/30 rounded-xl p-3">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{i.label}</p>
@@ -328,9 +328,9 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                 <div className="space-y-5">
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { Icon: Briefcase,    label: "Projects", value: user.total_projects,   sub: `${user.projects_completed} done` },
-                      { Icon: MessageSquare,label: "Messages", value: user.messages_count,   sub: "total sent" },
-                      { Icon: Activity,     label: "Sessions", value: user.sessions_count,   sub: "exchange rooms" },
+                      { Icon: Briefcase, label: "Projects", value: user.total_projects, sub: `${user.projects_completed} done` },
+                      { Icon: MessageSquare, label: "Messages", value: user.messages_count, sub: "total sent" },
+                      { Icon: Activity, label: "Sessions", value: user.sessions_count, sub: "exchange rooms" },
                     ].map(c => (
                       <div key={c.label} className="bg-secondary/30 rounded-xl p-4 text-center">
                         <div className="p-2 rounded-lg bg-primary/10 w-fit mx-auto mb-2">
@@ -372,7 +372,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                     <div className="text-center shrink-0">
                       <p className="text-4xl font-bold text-foreground">{user.rating > 0 ? user.rating.toFixed(1) : "—"}</p>
                       <div className="flex gap-0.5 justify-center mt-1">
-                        {[1,2,3,4,5].map(s => (
+                        {[1, 2, 3, 4, 5].map(s => (
                           <Star key={s} className={`h-3 w-3 ${s <= Math.round(user.rating) ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />
                         ))}
                       </div>
@@ -410,7 +410,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-medium text-foreground">{f.reviewer_name || f.reviewer || "Anonymous"}</span>
                           <div className="flex gap-0.5">
-                            {[1,2,3,4,5].map(s => (
+                            {[1, 2, 3, 4, 5].map(s => (
                               <Star key={s} className={`h-2.5 w-2.5 ${s <= f.rating ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />
                             ))}
                           </div>
@@ -464,19 +464,19 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function UserManagement() {
-  const [users,        setUsers]        = useState<EnrichedUser[]>([])
-  const [stats,        setStats]        = useState({ total: 0, active: 0, blocked: 0, verified: 0, suspicious: 0 })
-  const [loading,      setLoading]      = useState(true)
-  const [search,       setSearch]       = useState("")
-  const [roleFilter,   setRoleFilter]   = useState("all")
+  const [users, setUsers] = useState<EnrichedUser[]>([])
+  const [stats, setStats] = useState({ total: 0, active: 0, blocked: 0, verified: 0, suspicious: 0 })
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [roleFilter, setRoleFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [verifiedFilter, setVerifiedFilter] = useState("all")
-  const [sortField,    setSortField]    = useState("joined_at")
-  const [sortDir,      setSortDir]      = useState<"asc" | "desc">("desc")
-  const [page,         setPage]         = useState(1)
-  const [blockModal,   setBlockModal]   = useState<EnrichedUser | null>(null)
-  const [verifyModal,  setVerifyModal]  = useState<EnrichedUser | null>(null)
-  const [detailUser,   setDetailUser]   = useState<EnrichedUser | null>(null)
+  const [sortField, setSortField] = useState("joined_at")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
+  const [page, setPage] = useState(1)
+  const [blockModal, setBlockModal] = useState<EnrichedUser | null>(null)
+  const [verifyModal, setVerifyModal] = useState<EnrichedUser | null>(null)
+  const [detailUser, setDetailUser] = useState<EnrichedUser | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
   const fetchUsers = useCallback(async () => {
@@ -490,11 +490,11 @@ export default function UserManagement() {
 
       setUsers(d.users || [])
       setStats({
-        total:     d.total          || 0,
-        active:    d.active_count   || 0,
-        blocked:   d.blocked_count  || 0,
-        verified:  d.verified_count || 0,
-        suspicious:d.suspicious_count || 0,
+        total: d.total || 0,
+        active: d.active_count || 0,
+        blocked: d.blocked_count || 0,
+        verified: d.verified_count || 0,
+        suspicious: d.suspicious_count || 0,
       })
     } catch (err) {
       console.error("UserManagement: fetchUsers failed —", err)
@@ -512,9 +512,9 @@ export default function UserManagement() {
       const q = search.toLowerCase()
       r = r.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.skills.some(s => s.name.toLowerCase().includes(q)))
     }
-    if (roleFilter   !== "all") r = r.filter(u => u.role === roleFilter)
+    if (roleFilter !== "all") r = r.filter(u => u.role === roleFilter)
     if (statusFilter !== "all") r = r.filter(u => u.status === statusFilter)
-    if (verifiedFilter === "verified")   r = r.filter(u => u.verified)
+    if (verifiedFilter === "verified") r = r.filter(u => u.verified)
     if (verifiedFilter === "unverified") r = r.filter(u => !u.verified)
 
     r.sort((a, b) => {
@@ -527,7 +527,7 @@ export default function UserManagement() {
   }, [users, search, roleFilter, statusFilter, verifiedFilter, sortField, sortDir])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   useEffect(() => { setPage(1) }, [search, roleFilter, statusFilter, verifiedFilter])
 
@@ -564,14 +564,14 @@ export default function UserManagement() {
   }
 
   const COLS = [
-    { label: "User",    field: "name",               sortable: true  },
-    { label: "Role",    field: "role",               sortable: true  },
-    { label: "Skills",  field: null,                 sortable: false },
-    { label: "Rating",  field: "rating",             sortable: true  },
-    { label: "Status",  field: "status",             sortable: true  },
-    { label: "Verified",field: "verified",           sortable: false },
-    { label: "Joined",  field: "joined_at",          sortable: true  },
-    { label: "Actions", field: null,                 sortable: false },
+    { label: "User", field: "name", sortable: true },
+    { label: "Role", field: "role", sortable: true },
+    { label: "Skills", field: null, sortable: false },
+    { label: "Rating", field: "rating", sortable: true },
+    { label: "Status", field: "status", sortable: true },
+    { label: "Verified", field: "verified", sortable: false },
+    { label: "Joined", field: "joined_at", sortable: true },
+    { label: "Actions", field: null, sortable: false },
   ]
 
   return (
@@ -594,11 +594,11 @@ export default function UserManagement() {
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: "Total",      value: stats.total,     Icon: User,          cls: "bg-secondary/50 border border-border",                   icls: "text-foreground"   },
-          { label: "Active",     value: stats.active,    Icon: CheckCircle2,  cls: "bg-emerald-500/5 border border-emerald-500/10",           icls: "text-emerald-400"  },
-          { label: "Blocked",    value: stats.blocked,   Icon: Ban,           cls: "bg-destructive/5 border border-destructive/10",           icls: "text-destructive"  },
-          { label: "Verified",   value: stats.verified,  Icon: ShieldCheck,   cls: "bg-blue-500/5 border border-blue-500/10",                 icls: "text-blue-400"     },
-          { label: "Suspicious", value: stats.suspicious,Icon: AlertTriangle, cls: "bg-amber-500/5 border border-amber-500/10",              icls: "text-amber-400"    },
+          { label: "Total", value: stats.total, Icon: User, cls: "bg-secondary/50 border border-border", icls: "text-foreground" },
+          { label: "Active", value: stats.active, Icon: CheckCircle2, cls: "bg-emerald-500/5 border border-emerald-500/10", icls: "text-emerald-400" },
+          { label: "Blocked", value: stats.blocked, Icon: Ban, cls: "bg-destructive/5 border border-destructive/10", icls: "text-destructive" },
+          { label: "Verified", value: stats.verified, Icon: ShieldCheck, cls: "bg-blue-500/5 border border-blue-500/10", icls: "text-blue-400" },
+          { label: "Suspicious", value: stats.suspicious, Icon: AlertTriangle, cls: "bg-amber-500/5 border border-amber-500/10", icls: "text-amber-400" },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
             className={`rounded-xl p-3.5 ${s.cls}`}>
@@ -702,7 +702,7 @@ export default function UserManagement() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <p className="text-sm font-semibold text-foreground truncate max-w-[130px]">{user.name}</p>
-                            {user.verified   && <ShieldCheck    className="h-3 w-3 text-blue-400 shrink-0" />}
+                            {user.verified && <ShieldCheck className="h-3 w-3 text-blue-400 shrink-0" />}
                             {user.is_suspicious && <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" />}
                           </div>
                           <p className="text-xs text-muted-foreground truncate max-w-[130px]">{user.email}</p>
@@ -794,13 +794,13 @@ export default function UserManagement() {
 
       {/* Modals */}
       <AnimatePresence>
-        {blockModal  && <BlockModal  user={blockModal}  onConfirm={() => handleBlock(blockModal)}  onCancel={() => setBlockModal(null)}  loading={actionLoading} />}
+        {blockModal && <BlockModal user={blockModal} onConfirm={() => handleBlock(blockModal)} onCancel={() => setBlockModal(null)} loading={actionLoading} />}
         {verifyModal && <VerifyModal user={verifyModal} onConfirm={() => handleVerify(verifyModal)} onCancel={() => setVerifyModal(null)} loading={actionLoading} />}
-        {detailUser  && (
+        {detailUser && (
           <DetailModal
             user={detailUser}
             onClose={() => setDetailUser(null)}
-            onBlock={u  => { setDetailUser(null); setBlockModal(u)  }}
+            onBlock={u => { setDetailUser(null); setBlockModal(u) }}
             onVerify={u => { setDetailUser(null); setVerifyModal(u) }}
           />
         )}

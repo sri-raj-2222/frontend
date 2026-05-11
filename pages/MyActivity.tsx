@@ -64,7 +64,7 @@ export default function MyActivity() {
       let expressIncoming: ExchangeRequest[] = []
       let expressOutgoing: ExchangeRequest[] = []
       try {
-        const expressRes = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
+        const expressRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
         if (expressRes.ok) {
           const expressData = await expressRes.json()
           expressIncoming = expressData.incoming || []
@@ -87,7 +87,7 @@ export default function MyActivity() {
         let taskMap: Record<string, any> = {}
         if (taskIds.length > 0) {
           const { data: tasks } = await supabase.from('tasks').select('id, title, offering, wanting').in('id', taskIds)
-          ;(tasks || []).forEach(t => { taskMap[t.id] = t })
+            ; (tasks || []).forEach(t => { taskMap[t.id] = t })
         }
 
         // Get user names for requester + owner IDs
@@ -95,7 +95,7 @@ export default function MyActivity() {
         let profileMap: Record<string, any> = {}
         if (userIds.length > 0) {
           const { data: profiles } = await supabase.from('profiles').select('id, name, profile_pic').in('id', userIds)
-          ;(profiles || []).forEach(p => { profileMap[p.id] = p })
+            ; (profiles || []).forEach(p => { profileMap[p.id] = p })
         }
 
         const localExpressIds = new Set([...expressIncoming, ...expressOutgoing].map(r => r.id))
@@ -118,7 +118,7 @@ export default function MyActivity() {
               wanting: task.wanting || '',
             },
             requester: { name: requesterProfile.name || 'User', avatar_url: requesterProfile.profile_pic || null },
-            owner:     { name: ownerProfile.name || 'User',     avatar_url: ownerProfile.profile_pic || null },
+            owner: { name: ownerProfile.name || 'User', avatar_url: ownerProfile.profile_pic || null },
             requester_id: r.requester_id,
             owner_id: r.owner_id,
           }
@@ -152,7 +152,7 @@ export default function MyActivity() {
   useEffect(() => {
     if (user) {
       loadRequests()
-      
+
       const channel = supabase
         .channel(`activity:${user.id}`)
         .on('postgres_changes', {
@@ -179,7 +179,7 @@ export default function MyActivity() {
         let data: any = null
 
         if (requestType === 'match') {
-          const res = await fetch(`http://localhost:5000/api/match-requests/${request.id}`, {
+          const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -187,7 +187,7 @@ export default function MyActivity() {
           data = await res.json()
         } else {
           const taskId = request.task_id || 'null'
-          const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`, {
+          const res = await fetch(`https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -255,13 +255,13 @@ export default function MyActivity() {
       let requesterName = request.requester?.name || ''
       if (!requesterName) {
         try {
-          const nr = await fetch(`http://localhost:5000/api/user-name/${requesterUserId}`)
+          const nr = await fetch(`https://backend-a41z.onrender.com/api/user-name/${requesterUserId}`)
           if (nr.ok) { const nd = await nr.json(); requesterName = nd.name || '' }
         } catch { /* ignore */ }
       }
       if (!requesterName) requesterName = requesterUserId?.split('-')[0] || 'User'
 
-      const notifyRes = await fetch('http://localhost:5000/api/accept-and-notify', {
+      const notifyRes = await fetch('https://backend-a41z.onrender.com/api/accept-and-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -296,10 +296,10 @@ export default function MyActivity() {
       if (isLocalRequest) {
         let endpoint = ''
         if (requestType === 'match') {
-          endpoint = `http://localhost:5000/api/match-requests/${request.id}`
+          endpoint = `https://backend-a41z.onrender.com/api/match-requests/${request.id}`
         } else {
           const taskId = request.task_id || 'null'
-          endpoint = `http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`
+          endpoint = `https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`
         }
         await fetch(endpoint, {
           method: 'PATCH',
@@ -341,7 +341,7 @@ export default function MyActivity() {
             <h1 className="text-4xl font-black tracking-tight mb-2">My Activity</h1>
             <p className="text-muted-foreground font-medium">Manage your skill exchanges and track progress.</p>
           </div>
-          
+
           <div className="flex p-1 bg-secondary/30 rounded-2xl border border-border/50 backdrop-blur-xl">
             {(['incoming', 'sent', 'completed'] as Tab[]).map((tab) => (
               <button
