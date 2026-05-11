@@ -1,6 +1,5 @@
 ﻿import { useState, useId } from "react"
 import { useNavigate } from "react-router-dom"
-import { useGoogleLogin } from "@react-oauth/google"
 import { Button } from "@/components/ui/button"
 import { GetStartedButton } from "@/components/ui/get-started-button"
 import {
@@ -40,26 +39,6 @@ export default function AuthDialog({
 
   const id = useId()
   const navigate = useNavigate()
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      console.log("Google Login Success:", tokenResponse);
-      setIsLoading(true);
-      try {
-        // Here we would normally send the token to our backend
-        // For now, let's simulate a successful login by redirecting to onboarding
-        setOpen(false);
-        navigate('/onboarding');
-      } catch {
-        setError("Google authentication failed. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    onError: () => {
-      setError("Google Login Failed");
-    }
-  });
 
   const toggleMode = () => {
     setMode(mode === "signup" ? "login" : "signup")
@@ -267,18 +246,6 @@ export default function AuthDialog({
 
         {mode === "signup" && (
           <>
-            <div className="before:bg-border after:bg-border flex items-center gap-3 before:h-px before:flex-1 after:h-px after:flex-1 my-4">
-              <span className="text-muted-foreground text-xs">Or</span>
-            </div>
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => googleLogin()}
-              className="w-full transition-colors duration-300 rounded-lg hover:bg-foreground hover:text-background flex items-center justify-center gap-2"
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-              Continue with Google
-            </Button>
             <p className="text-muted-foreground text-center text-xs mt-2">
               By signing up you agree to our{" "}
               <a className="underline hover:no-underline" href="#">
