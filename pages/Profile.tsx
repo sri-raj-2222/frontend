@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
 import { 
@@ -108,7 +108,7 @@ export default function Profile() {
 
       // ── 2. Local API: AI analysis & points ───────────────────────────────
       try {
-        const aiRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/profile`)
+        const aiRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/profile`)
         const aiData = await aiRes.json()
         if (aiData?.analysis) setAiAnalysis(aiData.analysis)
         if (aiData?.points !== undefined) {
@@ -118,7 +118,7 @@ export default function Profile() {
 
       // ── 3. Local API: Reviews ────────────────────────────────────────────
       try {
-        const statusRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/reviews`)
+        const statusRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
         const reviewsData = await statusRes.json()
         if (Array.isArray(reviewsData)) setReviews(reviewsData)
       } catch { /* server may be offline */ }
@@ -126,7 +126,7 @@ export default function Profile() {
       // ── 4. Skills: local API first, fallback to Supabase ─────────────────
       let skillsFetched = false
       try {
-        const skillRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/skills`)
+        const skillRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/skills`)
         const skillData = await skillRes.json()
         if (Array.isArray(skillData) && skillData.length > 0) {
           setOfferingSkills(skillData.filter((s: UserSkill) => s.skill_type === 'offering'))
@@ -157,7 +157,7 @@ export default function Profile() {
     if (viewUserId) {
       loadProfile()
       // Fetch flag status for this user
-      fetch(`http://localhost:5000/api/users/${viewUserId}/flag-status`)
+      fetch(`https://backend-a41z.onrender.com/api/users/${viewUserId}/flag-status`)
         .then(r => r.json())
         .then(d => { if (d.level > 0) setFlagInfo(d) })
         .catch(() => {})
@@ -171,7 +171,7 @@ export default function Profile() {
     }
     setAddingSkill(true)
     try {
-      const url = `http://localhost:5000/api/user/${authUser.id}/skills`;
+      const url = `https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`;
       console.log("Adding skill to:", url);
       const res = await fetch(url, {
         method: "POST",
@@ -194,7 +194,7 @@ export default function Profile() {
 
   const handleDeleteSkill = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/skills/${id}`, { method: "DELETE" })
+      const res = await fetch(`https://backend-a41z.onrender.com/api/skills/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed to delete skill")
       loadProfile(true)
     } catch (err) { console.error(err) }

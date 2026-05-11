@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Navigate } from "react-router-dom"
 import { Shield } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)

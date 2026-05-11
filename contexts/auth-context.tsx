@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
-const API = 'http://localhost:5000';
+const API = 'https://backend-a41z.onrender.com';
 
 type UserRole = 'user' | 'admin' | 'moderator' | 'support';
 
@@ -115,7 +115,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } : prev);
         }
       })
-      .catch(() => { /* silently ignore */ });
 
     // Check ban status
     fetch(`${API}/api/users/${user.id}/ban-status`)

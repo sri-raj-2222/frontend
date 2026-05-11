@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
@@ -62,7 +62,7 @@ export default function Onboarding() {
     if (!user?.id) return
     try {
       // 1. Update Profile
-      const profRes = await fetch(`http://localhost:5000/api/user/${user.id}/profile`, {
+      const profRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -80,7 +80,7 @@ export default function Onboarding() {
         // We'll just add them for now. In a real app we might clear old ones first.
         // For simplicity during onboarding, we just POST them.
         await Promise.all(formData.skills.map(skill => 
-          fetch(`http://localhost:5000/api/user/${user.id}/skills`, {
+          fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/skills`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

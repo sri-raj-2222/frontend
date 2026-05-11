@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   Search, Sparkles, RefreshCcw, AlertCircle, Clock, CheckCircle2, MessageSquare, History, User2, Zap
@@ -75,7 +75,7 @@ export default function DirectExchange() {
         Return JSON ONLY:
         { "top_matches": [ { "task_id": "id", "reason": "why" } ] }
       `
-      const res = await fetch("http://localhost:5000/api/ai/recommend", {
+      const res = await fetch("https://backend-a41z.onrender.com/api/ai/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: geminiPrompt })
@@ -111,7 +111,7 @@ export default function DirectExchange() {
       //   AND
       //   Person B's offering  ∩  Person A's wanting  ≠ ∅
       //   → only then recommend Person B to Person A (and vice-versa)
-      const recRes = await fetch(`http://localhost:5000/api/recommendations/${user.id}`)
+      const recRes = await fetch(`https://backend-a41z.onrender.com/api/recommendations/${user.id}`)
       const matched: Task[] = recRes.ok ? await recRes.json().catch(() => []) : []
 
       // Step 3 — if SkillIntake passed an override skill, narrow further
@@ -153,11 +153,11 @@ export default function DirectExchange() {
     if (!silent) setLoading(true)
     try {
       // 1. Fetch Requests (Incoming/Outgoing)
-      const res = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
       const data = await res.json()
       
       // 2. Fetch Own Posts
-      const postRes = await fetch(`http://localhost:5000/api/user/${user.id}/posts`)
+      const postRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/posts`)
       const ownPosts = await postRes.json()
 
       const combined = [
@@ -176,7 +176,7 @@ export default function DirectExchange() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
       
-      const roomRes = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+      const roomRes = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
       const rooms = await roomRes.json()
 
       const enriched = combined.map((item: ActivityItem) => {
@@ -324,7 +324,7 @@ export default function DirectExchange() {
 
   const handleUpdateStatus = async (item: ActivityItem, status: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/requests/${item.id}`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/requests/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })

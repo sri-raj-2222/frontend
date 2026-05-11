@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Flag, Search, Filter, RefreshCw, X,
@@ -7,7 +7,7 @@ import {
   ArrowLeft, Calendar, ExternalLink,
 } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 
 // ── User Profile Modal ────────────────────────────────────────────────────────
@@ -113,12 +113,6 @@ function StatusBadge({ status }: { status: string }) {
       {status.replace("_", " ")}
     </span>
   )
-}
-
-const FLAG_STYLES: Record<string, string> = {
-  yellow: 'text-yellow-500',
-  orange: 'text-orange-500',
-  red:    'text-destructive',
 }
 
 function FlagIcon({ color, label }: { color: string; label: string }) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flag, X, ChevronRight, ChevronLeft, AlertTriangle,
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/auth-context'
 import type { Message } from '@/types'
 
-const API = 'http://localhost:5000'
+const API = 'https://backend-a41z.onrender.com'
 
 const REASON_CATEGORIES = [
   'Harassment / Hate speech',

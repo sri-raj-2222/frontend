@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+﻿import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 const CATEGORIES = ['General', 'Development', 'Design', 'Marketing', 'Data Science', 'Business', 'Language', 'Music', 'Other']
 const DIFFICULTIES = ['beginner', 'intermediate', 'advanced']

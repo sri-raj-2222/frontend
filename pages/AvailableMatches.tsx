@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeftRight, RefreshCcw, AlertCircle, ChevronRight, Search, MessageSquare } from "lucide-react"
 import { Navbar } from "@/components/navbar"
@@ -27,7 +27,7 @@ export default function AvailableMatches() {
     if (!userId) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/matches/${userId}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/matches/${userId}`)
       const data = await res.json()
       setCurrentUser(data.currentUser)
       
@@ -172,7 +172,7 @@ export default function AvailableMatches() {
       }
 
       // 4 — Ping Express server → emits socket event to owner's room immediately
-      fetch('http://localhost:5000/api/tasks/null/request', {
+      fetch('https://backend-a41z.onrender.com/api/tasks/null/request', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

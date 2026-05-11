@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/auth-context"
+﻿import { useAuth } from "@/contexts/auth-context"
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 import { ModeToggle } from "@/components/ui/mode-toggle"
@@ -13,7 +13,6 @@ import {
   GraduationCap, 
   BookOpen,
   ChevronRight,
-  Inbox,
   ArrowLeftRight,
   Zap,
   Shield
@@ -56,7 +55,7 @@ export function Navbar() {
   const fetchNotifications = useCallback(async () => {
     try {
       const [expressRes, supabaseRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/notifications?user_id=${CURRENT_USER_ID}`),
+        fetch(`https://backend-a41z.onrender.com/api/notifications?user_id=${CURRENT_USER_ID}`),
         supabase
           .from('notifications')
           .select('*')
@@ -80,7 +79,7 @@ export function Navbar() {
 
   const fetchRooms = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${CURRENT_USER_ID}`)
       const data = await res.json()
       setRooms(data || [])
     } catch (err) {
@@ -168,7 +167,7 @@ export function Navbar() {
     try {
       if (type === 'match_request') {
         // Match request — handled by local Express
-        const res = await fetch(`http://localhost:5000/api/match-requests/${referenceId}`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status })
@@ -213,7 +212,7 @@ export function Navbar() {
           // If profiles had no name, ask local Express DB (stores names from when requests were sent)
           if (!requesterName) {
             try {
-              const nr = await fetch(`http://localhost:5000/api/user-name/${request.requester_id}`)
+              const nr = await fetch(`https://backend-a41z.onrender.com/api/user-name/${request.requester_id}`)
               if (nr.ok) { const nd = await nr.json(); requesterName = nd.name || '' }
             } catch { /* ignore */ }
           }
@@ -247,7 +246,7 @@ export function Navbar() {
           }
 
           // 4. Sync to local Express DB + emit server-side socket to requester
-          await fetch('http://localhost:5000/api/accept-and-notify', {
+          await fetch('https://backend-a41z.onrender.com/api/accept-and-notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -274,7 +273,7 @@ export function Navbar() {
       } else {
         // Default: local Express task request (request_new type)
         const tid = taskId || 'null'
-        const res = await fetch(`http://localhost:5000/api/tasks/${tid}/requests/${referenceId}`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/tasks/${tid}/requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status })
@@ -286,8 +285,8 @@ export function Navbar() {
       }
 
       // Mark notification as read (both local and Supabase)
-      await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, { method: 'PATCH' }).catch(() => {})
-      await supabase.from('notifications').update({ is_read: true }).eq('id', notificationId).catch(() => {})
+      await fetch(`https://backend-a41z.onrender.com/api/notifications/${notificationId}/read`, { method: 'PATCH' }).catch(() => {})
+      void supabase.from('notifications').update({ is_read: true }).eq('id', notificationId)
       fetchNotifications()
     } catch (err) {
       console.error("Action error:", err)
@@ -301,7 +300,7 @@ export function Navbar() {
       // Update local express notifications
       const localUnread = notifications.filter(n => !n.is_read && typeof n.id === 'string' && !n.id.includes('-'))
       localUnread.forEach(async (n) => {
-        await fetch(`http://localhost:5000/api/notifications/${n.id}/read`, { method: "PATCH" })
+        await fetch(`https://backend-a41z.onrender.com/api/notifications/${n.id}/read`, { method: "PATCH" })
       })
 
       // Update Supabase notifications

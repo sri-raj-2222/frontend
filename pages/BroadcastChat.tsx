@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+﻿import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
 import { io } from "socket.io-client"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 const socket = io(API)
 
 interface ChatMessage {

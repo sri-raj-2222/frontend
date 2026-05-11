@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react"
+﻿import { useState, useEffect, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, ShieldCheck, Star, AlertTriangle, Eye, Ban,
@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 const PAGE_SIZE = 10
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -518,8 +518,8 @@ export default function UserManagement() {
     if (verifiedFilter === "unverified") r = r.filter(u => !u.verified)
 
     r.sort((a, b) => {
-      const av = (a as Record<string, unknown>)[sortField] ?? ""
-      const bv = (b as Record<string, unknown>)[sortField] ?? ""
+      const av = (a as unknown as Record<string, unknown>)[sortField] ?? ""
+      const bv = (b as unknown as Record<string, unknown>)[sortField] ?? ""
       const cmp = typeof av === "number" ? (av as number) - (bv as number) : String(av).localeCompare(String(bv))
       return sortDir === "asc" ? cmp : -cmp
     })

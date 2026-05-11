@@ -1,4 +1,4 @@
-import { useState, useId } from "react"
+﻿import { useState, useId } from "react"
 import { useNavigate } from "react-router-dom"
 import { useGoogleLogin } from "@react-oauth/google"
 import { Button } from "@/components/ui/button"
@@ -101,7 +101,7 @@ export default function AuthDialog({
 
         // Step 1: Check if email + password matches an admin account
         try {
-          const adminRes = await fetch('http://localhost:5000/api/admin/login', {
+          const adminRes = await fetch('https://backend-a41z.onrender.com/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email.trim().toLowerCase(), password })
@@ -128,7 +128,7 @@ export default function AuthDialog({
         const userId = loginData.user?.id
         if (userId) {
           try {
-            const banRes = await fetch(`http://localhost:5000/api/users/${userId}/ban-status`)
+            const banRes = await fetch(`https://backend-a41z.onrender.com/api/users/${userId}/ban-status`)
             const banData = await banRes.json()
             if (banData.banned) {
               // Sign them back out immediately so the session is not persisted

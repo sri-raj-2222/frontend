@@ -103,6 +103,8 @@ export interface Review {
   comment: string;
   tags?: string[];
   created_at?: string;
+  reviewer_name?: string;
+  task_title?: string;
 }
 
 export interface Dispute {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+﻿import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import {
@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase"
 import UserManagement from "./UserManagement"
 import ReportsPanel from "./ReportsPanel"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 // ── Status badge colours ──────────────────────────────────────────────────────
 const badge: Record<string, string> = {
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   const [users,    setUsers]    = useState<any[]>([])
   const [tasks,    setTasks]    = useState<any[]>([])
   const [sessions, setSessions] = useState<any[]>([])
-  const [disputes, setDisputes] = useState<any[]>([])
+  const [_disputes, setDisputes] = useState<any[]>([])
   const [reviews,  setReviews]  = useState<any[]>([])
 
   const adminSession = (() => {

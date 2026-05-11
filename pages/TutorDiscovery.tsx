@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, BookOpen, Clock, Users,
   Sparkles, ArrowRight, MessageSquare, GraduationCap, Star, Zap, Radio,
-  X, Calendar, CheckCircle2, AlertCircle, Loader2, ChevronRight, Award, Video, XCircle
+  X, Calendar, CheckCircle2, AlertCircle, Loader2, Award, Video, XCircle
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface Broadcast {
   id: string
