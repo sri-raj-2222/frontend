@@ -1,9 +1,9 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 export default function AdminLogin() {
   const navigate = useNavigate()

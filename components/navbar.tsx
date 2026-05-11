@@ -373,9 +373,9 @@ export function Navbar() {
                   },
                   {
                     label: "Project Composite",
-                    description: "Build a team — multiple specialists, one project.\nProject: frontend, backend, database.",
+                    description: "Post a project, define roles, build your team.\nYou pay credits — contributors earn them.",
                     icon: Workflow,
-                    href: "/tasks/project"
+                    href: "/tasks/project/mine"
                   }
                 ]}
               />
@@ -397,6 +397,14 @@ export function Navbar() {
                   }
                 ]}
               />
+
+              <Link
+                to="/tasks/project"
+                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                Work
+                <Workflow className="h-3.5 w-3.5 text-primary" />
+              </Link>
 
               <div className="relative" ref={chatRef}>
                 <button

@@ -70,6 +70,8 @@ export default function Onboarding() {
           title: formData.profile.title,
           location: formData.profile.location,
           bio: formData.profile.bio,
+          linkedin: formData.resume.linkedin,
+          portfolio: formData.resume.portfolio,
         })
       })
 

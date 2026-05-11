@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Flag, Search, Filter, RefreshCw, X,
@@ -7,7 +7,7 @@ import {
   ArrowLeft, Calendar, ExternalLink,
 } from "lucide-react"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 
 // ── User Profile Modal ────────────────────────────────────────────────────────
@@ -195,6 +195,8 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
       } else {
         setActionMsg({ text: res.error || "Failed to submit action.", ok: false })
       }
+    } catch (err) {
+      setActionMsg({ text: "Network error — please check the server and try again.", ok: false })
     } finally { setSubmitting(false) }
   }
 

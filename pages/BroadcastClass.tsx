@@ -507,8 +507,8 @@ export default function BroadcastClass() {
                             <Star className="h-5 w-5 text-yellow-500" />
                           </div>
                           <div>
-                            <h3 className="font-black text-sm uppercase tracking-tight">Reward Credits</h3>
-                            <p className="text-xs text-muted-foreground font-medium">Charged per attendee at end</p>
+                            <h3 className="font-black text-sm uppercase tracking-tight">Credits Per Attendee</h3>
+                            <p className="text-xs text-muted-foreground font-medium">Each attendee earns this amount</p>
                           </div>
                         </div>
                         <span className="text-2xl font-black text-yellow-500">{form.reward_credits}</span>
@@ -551,7 +551,7 @@ export default function BroadcastClass() {
     const isLive = selected.status === 'live'
     const isCompleted = selected.status === 'completed'
     const attendedCount = enrollments.filter(e => e.status === 'attended').length
-    const totalEarned = attendedCount * (selected.reward_credits || 0)
+    const totalAwarded = attendedCount * (selected.reward_credits || 0)
     const jitsiUrl = `https://meet.jit.si/ShareSphere-${selected.id}`
 
     return (
@@ -700,7 +700,7 @@ export default function BroadcastClass() {
                               </p>
                             </div>
                             {attendances[e.user_id] !== false && selected.reward_credits > 0 && (
-                              <span className="text-xs font-black text-red-500">-{selected.reward_credits} cr</span>
+                              <span className="text-xs font-black text-emerald-600">+{selected.reward_credits} cr</span>
                             )}
                           </div>
                         ))}
@@ -725,11 +725,11 @@ export default function BroadcastClass() {
                 <div className="p-8 rounded-[32px] bg-green-50 border border-green-200 text-center">
                   <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="font-black text-xl mb-1 text-green-700">Session Complete</h3>
-                  <p className="text-sm text-green-600 font-medium mb-4">Credits settled for all attendees.</p>
+                  <p className="text-sm text-green-600 font-medium mb-4">Credits awarded to all attendees.</p>
                   {selected.reward_credits > 0 && (
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-black text-sm">
                       <Award className="h-4 w-4" />
-                      {totalEarned} credits earned ({attendedCount} × {selected.reward_credits} cr)
+                      {totalAwarded} credits awarded ({attendedCount} × {selected.reward_credits} cr each)
                     </div>
                   )}
                 </div>

@@ -205,7 +205,7 @@ function ClassDetailModal({
             <div className="mb-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3">
               <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                <span className="text-foreground font-black">{broadcast.reward_credits} credits</span> will be deducted from your balance when you attend the session. Credits are only charged for attendees — no charge for no-shows.
+                You will earn <span className="text-foreground font-black">+{broadcast.reward_credits} credits</span> added to your balance when you attend the session. Credits are awarded only to attendees — no-shows receive nothing.
               </p>
             </div>
           )}

@@ -1,8 +1,8 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
 import {
-  Star, Edit3, MapPin, Award, Trophy, Briefcase, Zap, Search, Plus, Trash2, X, Sparkles, Flag
+  Star, Edit3, MapPin, Award, Trophy, Briefcase, Zap, Search, Plus, Trash2, X, Flag, CheckCircle2, MessageSquare, Link2, Globe, ExternalLink
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import type { Review, AiAnalysis } from "@/types"
+import type { Review } from "@/types"
 
 interface ProfileData {
   id: string
@@ -25,6 +25,8 @@ interface ProfileData {
   title: string | null
   offering: string | null
   wanting: string | null
+  linkedin: string | null
+  portfolio: string | null
   rating: number
   points: number
   completed_count: number
@@ -48,7 +50,6 @@ export default function Profile() {
   const [wantingSkills, setWantingSkills] = useState<UserSkill[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Skill Add State
   const [showAddSkill, setShowAddSkill] = useState(false)
   const [newSkill, setNewSkill] = useState("")
   const [addingSkill, setAddingSkill] = useState(false)
@@ -56,7 +57,6 @@ export default function Profile() {
 
   const isOwnProfile = !searchParams.get("id") || searchParams.get("id") === authUser?.id
 
-  const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [flagInfo, setFlagInfo] = useState<{ level: number; color: string; label: string } | null>(null)
 
@@ -64,10 +64,9 @@ export default function Profile() {
     if (!viewUserId) return
     if (!silent) setLoading(true)
     try {
-      // ── 1. Supabase: profiles table (authoritative name/bio/avatar) ───────
       const { data: profileRow } = await supabase
         .from('profiles')
-        .select('id, name, email, role, profile_pic, updated_at')
+        .select('id, name, email, role, profile_pic, created_at, updated_at')
         .eq('id', viewUserId)
         .single()
 
@@ -78,27 +77,30 @@ export default function Profile() {
           email: profileRow.email || authUser?.email || '',
           avatar_url: profileRow.profile_pic || null,
           bio: '',
-          location: 'Global',
-          title: 'Elite Member',
+          location: '',
+          title: '',
           offering: '',
           wanting: '',
+          linkedin: null,
+          portfolio: null,
           rating: 0,
           points: 0,
           completed_count: 0,
-          created_at: profileRow.updated_at || new Date().toISOString(),
+          created_at: profileRow.created_at || profileRow.updated_at || new Date().toISOString(),
         })
       } else {
-        // Fallback: use auth session data
         setProfile({
           id: viewUserId,
           name: authUser?.name || 'User',
           email: authUser?.email || '',
           avatar_url: authUser?.profilePic || null,
           bio: '',
-          location: 'Global',
-          title: 'Elite Member',
+          location: '',
+          title: '',
           offering: '',
           wanting: '',
+          linkedin: null,
+          portfolio: null,
           rating: 0,
           points: 0,
           completed_count: 0,
@@ -106,24 +108,31 @@ export default function Profile() {
         })
       }
 
-      // ── 2. Local API: AI analysis & points ───────────────────────────────
       try {
         const aiRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/profile`)
         const aiData = await aiRes.json()
-        if (aiData?.analysis) setAiAnalysis(aiData.analysis)
-        if (aiData?.points !== undefined) {
-          setProfile(prev => prev ? { ...prev, points: aiData.points } : null)
+        if (aiData?.id) {
+          setProfile(prev => prev ? {
+            ...prev,
+            title: aiData.title || prev.title,
+            location: aiData.location || prev.location,
+            bio: aiData.bio || prev.bio,
+            avatar_url: aiData.avatar_url || prev.avatar_url,
+            linkedin: aiData.linkedin || prev.linkedin,
+            portfolio: aiData.portfolio || prev.portfolio,
+            points: aiData.points ?? prev.points,
+            completed_count: aiData.completed_count ?? prev.completed_count,
+            rating: aiData.rating ?? prev.rating,
+          } : null)
         }
       } catch { /* server may be offline */ }
 
-      // ── 3. Local API: Reviews ────────────────────────────────────────────
       try {
-        const statusRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
-        const reviewsData = await statusRes.json()
+        const reviewsRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
+        const reviewsData = await reviewsRes.json()
         if (Array.isArray(reviewsData)) setReviews(reviewsData)
       } catch { /* server may be offline */ }
 
-      // ── 4. Skills: local API first, fallback to Supabase ─────────────────
       let skillsFetched = false
       try {
         const skillRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/skills`)
@@ -156,7 +165,6 @@ export default function Profile() {
   useEffect(() => {
     if (viewUserId) {
       loadProfile()
-      // Fetch flag status for this user
       fetch(`https://backend-a41z.onrender.com/api/users/${viewUserId}/flag-status`)
         .then(r => r.json())
         .then(d => { if (d.level > 0) setFlagInfo(d) })
@@ -165,21 +173,13 @@ export default function Profile() {
   }, [viewUserId, loadProfile])
 
   const handleAddSkill = async () => {
-    if (!newSkill.trim() || !authUser?.id) {
-      console.warn("Skill add blocked: No skill name or no user ID", { newSkill, authUser });
-      return
-    }
+    if (!newSkill.trim() || !authUser?.id) return
     setAddingSkill(true)
     try {
-      const url = `https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`;
-      console.log("Adding skill to:", url);
-      const res = await fetch(url, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          skill_name: newSkill.trim(),
-          skill_type: skillType
-        })
+        body: JSON.stringify({ skill_name: newSkill.trim(), skill_type: skillType })
       })
       if (!res.ok) throw new Error("Failed to add skill")
       setNewSkill("")
@@ -200,120 +200,209 @@ export default function Profile() {
     } catch (err) { console.error(err) }
   }
 
-  if (loading) return <div className="h-screen flex items-center justify-center font-bold text-2xl animate-pulse">Accessing the Sphere...</div>
+  const memberSince = profile
+    ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    : '—'
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : profile?.rating ? profile.rating.toFixed(1) : '—'
+
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center">
+      <div className="text-center space-y-3">
+        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto" />
+        <p className="text-sm font-semibold text-muted-foreground tracking-wide">Loading profile...</p>
+      </div>
+    </div>
+  )
   if (!profile) return <div className="h-screen flex items-center justify-center font-bold text-2xl">User not found.</div>
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-6 py-10 mt-16 space-y-8">
-        {/* HERO SECTION */}
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-10 mt-16 space-y-6">
+
+        {/* ── PROFILE CARD ─────────────────────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[32px] border border-border bg-card p-8 md:p-10 shadow-xl"
+          transition={{ duration: 0.4 }}
+          className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm"
         >
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <Zap className="h-32 w-32 text-primary" />
+          {/* Cover banner */}
+          <div className="h-28 md:h-36 bg-gradient-to-br from-primary/20 via-primary/10 to-background relative">
+            <div className="absolute inset-0 opacity-30"
+              style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, hsl(var(--primary)) 0%, transparent 60%)' }} />
           </div>
 
-          <div className="relative flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-            <div className="relative shrink-0">
-              <div className="h-32 w-32 rounded-3xl overflow-hidden border-4 border-background bg-secondary shadow-lg flex items-center justify-center group">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} className="h-full w-full object-cover transition-transform group-hover:scale-110" alt={profile.name} />
-                ) : (
-                  <span className="text-5xl font-black text-primary">{profile.name[0]}</span>
-                )}
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground h-10 w-10 rounded-xl flex items-center justify-center shadow-lg border-2 border-background">
-                <Star className="h-4 w-4 fill-primary-foreground" />
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center justify-center md:justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h1 className="text-4xl font-bold tracking-tight">{profile.name}</h1>
+          <div className="px-6 md:px-8 pb-8">
+            {/* Avatar + name row */}
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 -mt-14 md:-mt-16 mb-5">
+              <div className="flex items-end gap-4">
+                <div className="relative shrink-0">
+                  <div className="h-24 w-24 md:h-28 md:w-28 rounded-2xl overflow-hidden border-4 border-card bg-secondary shadow-md flex items-center justify-center">
+                    {profile.avatar_url ? (
+                      <img src={profile.avatar_url} className="h-full w-full object-cover" alt={profile.name} />
+                    ) : (
+                      <span className="text-4xl md:text-5xl font-black text-primary">{profile.name[0]}</span>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-lg bg-primary flex items-center justify-center border-2 border-card shadow">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
+                  </div>
+                </div>
+                <div className="pb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-none">{profile.name}</h1>
                     {flagInfo && flagInfo.level > 0 && (
-                      <span title={flagInfo.label} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border ${flagInfo.color === 'red' ? 'bg-destructive/10 border-destructive/20 text-destructive' :
-                          flagInfo.color === 'orange' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
-                            'bg-yellow-500/10 border-yellow-500/20 text-yellow-500'}`}>
-                        <Flag className="h-3 w-3" />{flagInfo.label}
+                      <span
+                        title={flagInfo.label}
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border",
+                          flagInfo.color === 'red'
+                            ? "bg-destructive/10 border-destructive/30 text-destructive"
+                            : flagInfo.color === 'orange'
+                              ? "bg-orange-500/10 border-orange-500/30 text-orange-500"
+                              : "bg-yellow-500/10 border-yellow-500/30 text-yellow-600"
+                        )}
+                      >
+                        <Flag className="h-3 w-3" /> {flagInfo.label}
                       </span>
                     )}
                   </div>
-                  <p className="text-lg font-bold text-muted-foreground flex items-center justify-center md:justify-start gap-2">
-                    <Briefcase className="h-4 w-4" /> {profile.title || "Elite Barter Member"}
-                  </p>
+                  {profile.title && (
+                    <p className="text-sm text-muted-foreground font-medium flex items-center gap-1.5">
+                      <Briefcase className="h-3.5 w-3.5 shrink-0" /> {profile.title}
+                    </p>
+                  )}
                 </div>
-                {isOwnProfile && (
-                  <Button onClick={() => navigate('/onboarding')} className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold uppercase text-[10px] tracking-widest gap-2 shadow-lg hover:scale-105 transition-all">
-                    <Edit3 className="h-3 w-3" /> Edit Profile
-                  </Button>
-                )}
               </div>
 
-              <p className="text-base font-medium text-muted-foreground leading-relaxed max-w-2xl">
-                {profile.bio || "Passionate about skill sharing and community growth. Let's exchange value!"}
-              </p>
+              {isOwnProfile && (
+                <Button
+                  onClick={() => navigate('/onboarding')}
+                  variant="outline"
+                  className="h-9 px-4 rounded-xl text-xs font-semibold gap-2 self-start md:self-auto"
+                >
+                  <Edit3 className="h-3.5 w-3.5" /> Edit Profile
+                </Button>
+              )}
+            </div>
 
-              <div className="flex flex-wrap justify-center md:justify-start gap-5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                <span className="flex items-center gap-2"><MapPin className="h-3 w-3" /> {profile.location || "Global"}</span>
-                <span className="flex items-center gap-2"><Award className="h-3 w-3" /> Joined {new Date(profile.created_at || new Date()).toLocaleDateString()}</span>
-                <span className="flex items-center gap-2 text-primary font-bold"><Trophy className="h-3 w-3" /> {profile.points || 0} Credits</span>
+            {/* Bio */}
+            {profile.bio && (
+              <p className="text-sm text-muted-foreground leading-relaxed mb-5 max-w-2xl">
+                {profile.bio}
+              </p>
+            )}
+
+            {/* Meta row — location, member since, linkedin, portfolio */}
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground mb-6">
+              {profile.location && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" /> {profile.location}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <Award className="h-3.5 w-3.5 shrink-0" /> Member since {memberSince}
+              </span>
+              {profile.linkedin && (
+                <a
+                  href={profile.linkedin.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[#0A66C2] hover:underline font-medium"
+                >
+                  <Link2 className="h-3.5 w-3.5 shrink-0" /> LinkedIn
+                  <ExternalLink className="h-3 w-3 opacity-60" />
+                </a>
+              )}
+              {profile.portfolio && (
+                <a
+                  href={profile.portfolio.startsWith('http') ? profile.portfolio : `https://${profile.portfolio}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-primary hover:underline font-medium"
+                >
+                  <Globe className="h-3.5 w-3.5 shrink-0" /> Portfolio
+                  <ExternalLink className="h-3 w-3 opacity-60" />
+                </a>
+              )}
+            </div>
+
+            {/* Stats bar */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl border border-border bg-background px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  <span className="text-lg font-bold">{avgRating}</span>
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Rating</p>
+              </div>
+              <div className="rounded-xl border border-border bg-background px-4 py-3 text-center">
+                <div className="text-lg font-bold mb-1">{profile.completed_count || 0}</div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Exchanges</p>
+              </div>
+              <div className="rounded-xl border border-border bg-background px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Trophy className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-lg font-bold">{profile.points || 0}</span>
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Credits</p>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* SKILLS GRID */}
-        <div className="grid md:grid-cols-2 gap-8">
+        {/* ── SKILLS GRID ──────────────────────────────────────────────── */}
+        <div className="grid md:grid-cols-2 gap-4">
           {/* Offering */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
-            className="p-8 rounded-[32px] border border-border bg-card shadow-sm hover:shadow-md transition-all"
+            transition={{ delay: 0.1 }}
+            className="rounded-2xl border border-border bg-card p-6 shadow-sm"
           >
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <Zap className="h-6 w-6 text-primary fill-primary" /> I'm Offering
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <span className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-3.5 w-3.5 text-primary" />
+                </span>
+                Offering
               </h2>
               {isOwnProfile && (
-                <Dialog open={showAddSkill} onOpenChange={setShowAddSkill}>
+                <Dialog open={showAddSkill && skillType === 'offering'} onOpenChange={(o) => { if (!o) setShowAddSkill(false) }}>
                   <DialogTrigger asChild>
                     <Button
                       variant="ghost"
-                      onClick={() => { setSkillType('offering'); setShowAddSkill(true); }}
-                      className="h-10 w-10 p-0 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all"
+                      size="sm"
+                      onClick={() => { setSkillType('offering'); setShowAddSkill(true) }}
+                      className="h-8 w-8 p-0 rounded-lg bg-primary/8 text-primary hover:bg-primary/15"
                     >
-                      <Plus className="h-5 w-5" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="rounded-[32px] p-8 max-w-sm">
+                  <DialogContent className="rounded-2xl max-w-sm">
                     <DialogHeader>
-                      <DialogTitle className="text-2xl font-black mb-4">Add a Skill to {skillType === 'offering' ? 'Offering' : 'Looking For'}</DialogTitle>
+                      <DialogTitle className="text-lg font-bold">Add Offering Skill</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Skill Name</label>
-                        <Input
-                          value={newSkill}
-                          onChange={(e) => setNewSkill(e.target.value)}
-                          placeholder="e.g. Graphic Design, Java..."
-                          className="h-14 rounded-2xl border-border bg-secondary/20 font-bold"
-                          autoFocus
-                          onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
-                        />
-                      </div>
-                      <div className="flex gap-3">
-                        <Button onClick={handleAddSkill} disabled={addingSkill || !newSkill.trim()} className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-xs">
+                    <div className="space-y-4 pt-2">
+                      <Input
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="e.g. Graphic Design, Python..."
+                        className="h-11 rounded-xl"
+                        autoFocus
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
+                      />
+                      <div className="flex gap-2">
+                        <Button onClick={handleAddSkill} disabled={addingSkill || !newSkill.trim()} className="flex-1 h-11 rounded-xl">
                           {addingSkill ? "Adding..." : "Add Skill"}
                         </Button>
-                        <Button variant="ghost" onClick={() => setShowAddSkill(false)} className="h-14 w-14 rounded-2xl bg-secondary flex items-center justify-center">
-                          <X className="h-5 w-5" />
+                        <Button variant="ghost" onClick={() => setShowAddSkill(false)} className="h-11 w-11 p-0 rounded-xl">
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -322,184 +411,195 @@ export default function Profile() {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              {/* Manually added skills */}
+            <div className="flex flex-wrap gap-2">
               {offeringSkills.map(s => (
                 <div key={s.id} className="group relative">
-                  <span className="px-6 py-3 rounded-2xl bg-primary/10 text-primary text-xs font-black uppercase tracking-widest border border-primary/20 flex items-center gap-2 shadow-sm hover:shadow-md transition-all">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold border border-primary/15">
                     {s.skill_name}
                     {isOwnProfile && (
-                      <button onClick={() => handleDeleteSkill(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive">
-                        <Trash2 className="h-3 w-3" />
+                      <button onClick={() => handleDeleteSkill(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive ml-0.5">
+                        <Trash2 className="h-2.5 w-2.5" />
                       </button>
                     )}
                   </span>
                 </div>
               ))}
-
-              {/* Skills from tasks (if any and not already in manual list) */}
               {profile.offering && profile.offering.split(', ').map((skill, i) => {
-                const isManual = offeringSkills.some(s => s.skill_name.toLowerCase() === skill.toLowerCase());
-                if (isManual) return null;
+                if (offeringSkills.some(s => s.skill_name.toLowerCase() === skill.toLowerCase())) return null
                 return (
-                  <span key={`task-${i}`} className="px-6 py-3 rounded-2xl bg-secondary/30 text-muted-foreground text-xs font-black uppercase tracking-widest border border-border/50 italic opacity-80">
+                  <span key={`task-${i}`} className="px-3 py-1.5 rounded-lg bg-secondary/40 text-muted-foreground text-xs font-medium border border-border/50 italic">
                     {skill}
                   </span>
-                );
+                )
               })}
-
               {!profile.offering && offeringSkills.length === 0 && (
-                <span className="px-6 py-3 rounded-2xl bg-secondary/20 text-muted-foreground/40 text-[10px] font-black uppercase tracking-widest italic">
-                  No skills listed yet
-                </span>
+                <span className="text-xs text-muted-foreground/50 italic">No skills listed yet</span>
               )}
             </div>
           </motion.div>
 
-          {/* Wanting */}
+          {/* Looking For */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 12 }}
             animate={{ opacity: 1, x: 0 }}
-            className="p-8 rounded-[32px] border border-border bg-card shadow-sm hover:shadow-md transition-all"
+            transition={{ delay: 0.15 }}
+            className="rounded-2xl border border-border bg-card p-6 shadow-sm"
           >
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <Search className="h-6 w-6 text-amber-500" /> I'm Looking For
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <span className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Search className="h-3.5 w-3.5 text-amber-600" />
+                </span>
+                Looking For
               </h2>
               {isOwnProfile && (
                 <Button
                   variant="ghost"
-                  onClick={() => { setSkillType('wanting'); setShowAddSkill(true); }}
-                  className="h-10 w-10 p-0 rounded-xl bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-all"
+                  size="sm"
+                  onClick={() => { setSkillType('wanting'); setShowAddSkill(true) }}
+                  className="h-8 w-8 p-0 rounded-lg bg-amber-500/8 text-amber-600 hover:bg-amber-500/15"
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4 w-4" />
                 </Button>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              {/* Manually added skills */}
+            {/* Reuse the same dialog for wanting */}
+            <Dialog open={showAddSkill && skillType === 'wanting'} onOpenChange={(o) => { if (!o) setShowAddSkill(false) }}>
+              <DialogContent className="rounded-2xl max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-bold">Add Skill You're Looking For</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <Input
+                    value={newSkill}
+                    onChange={(e) => setNewSkill(e.target.value)}
+                    placeholder="e.g. Video Editing, Marketing..."
+                    className="h-11 rounded-xl"
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddSkill} disabled={addingSkill || !newSkill.trim()} className="flex-1 h-11 rounded-xl">
+                      {addingSkill ? "Adding..." : "Add Skill"}
+                    </Button>
+                    <Button variant="ghost" onClick={() => setShowAddSkill(false)} className="h-11 w-11 p-0 rounded-xl">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <div className="flex flex-wrap gap-2">
               {wantingSkills.map(s => (
                 <div key={s.id} className="group relative">
-                  <span className="px-6 py-3 rounded-2xl bg-amber-500/10 text-amber-600 text-xs font-black uppercase tracking-widest border border-amber-500/20 flex items-center gap-2 shadow-sm hover:shadow-md transition-all">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs font-semibold border border-amber-500/15">
                     {s.skill_name}
                     {isOwnProfile && (
-                      <button onClick={() => handleDeleteSkill(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive">
-                        <Trash2 className="h-3 w-3" />
+                      <button onClick={() => handleDeleteSkill(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive ml-0.5">
+                        <Trash2 className="h-2.5 w-2.5" />
                       </button>
                     )}
                   </span>
                 </div>
               ))}
-
-              {/* Derived from tasks */}
               {profile.wanting && profile.wanting.split(', ').map((skill, i) => {
-                const isManual = wantingSkills.some(s => s.skill_name.toLowerCase() === skill.toLowerCase());
-                if (isManual) return null;
+                if (wantingSkills.some(s => s.skill_name.toLowerCase() === skill.toLowerCase())) return null
                 return (
-                  <span key={`task-want-${i}`} className="px-6 py-3 rounded-2xl bg-secondary/30 text-muted-foreground text-xs font-black uppercase tracking-widest border border-border/50 italic opacity-80">
+                  <span key={`task-want-${i}`} className="px-3 py-1.5 rounded-lg bg-secondary/40 text-muted-foreground text-xs font-medium border border-border/50 italic">
                     {skill}
                   </span>
-                );
+                )
               })}
-
               {!profile.wanting && wantingSkills.length === 0 && (
-                <span className="px-6 py-3 rounded-2xl bg-secondary/20 text-muted-foreground/40 text-[10px] font-black uppercase tracking-widest italic">
-                  No skills listed yet
-                </span>
+                <span className="text-xs text-muted-foreground/50 italic">No skills listed yet</span>
               )}
             </div>
           </motion.div>
         </div>
 
-        {/* AI INSIGHTS SECTION */}
-        {aiAnalysis && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-[32px] border border-primary/20 bg-primary/5 p-8 md:p-10"
-          >
-            <div className="relative space-y-8">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                    <Sparkles className="h-6 w-6 text-primary fill-primary" /> AI Insights
-                  </h2>
-                </div>
-                <div className="flex gap-3">
-                  <div className="bg-background rounded-2xl p-4 border border-border shadow-sm text-center min-w-[100px]">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Score</p>
-                    <p className="text-2xl font-black text-primary">{aiAnalysis.suggested_rating || "N/A"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <p className="text-base font-bold leading-relaxed">{aiAnalysis.summary}</p>
-                  <p className="text-sm font-medium text-muted-foreground leading-relaxed">{aiAnalysis.overall_feedback}</p>
-                </div>
-                <div className="bg-background/50 rounded-2xl p-6 border border-border shadow-sm">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-3 flex items-center gap-2">
-                    <Zap className="h-3 w-3 fill-amber-600" /> Focus
-                  </h4>
-                  <p className="text-md font-bold">{aiAnalysis.growth_areas}</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* FEEDBACK SECTION */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Award className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-black tracking-tight">Recent Feedback</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {reviews.length > 0 ? reviews.map((rev, i) => (
-              <div key={i} className="p-8 rounded-[32px] border border-border bg-card/50 flex gap-6 hover:shadow-md transition-all">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-lg shrink-0">
-                  {(rev.reviewer_name || rev.reviewer_id || 'P')[0].toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-sm font-black">{rev.reviewer_name || 'Peer Reviewer'}</p>
-                    {rev.skill_level && (
-                      <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-primary/10 text-primary shrink-0">
-                        {rev.skill_level}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-1 mb-2">
-                    {Array.from({ length: 5 }).map((_, star) => (
-                      <Star key={star} className={cn("h-3 w-3", star < rev.rating ? "fill-amber-500 text-amber-500" : "text-muted-foreground/20")} />
-                    ))}
-                  </div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">"{rev.comment}"</p>
-                  {rev.tags && rev.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {rev.tags.map((tag: string) => (
-                        <span key={tag} className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-secondary/60 text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {rev.task_title && (
-                    <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">
-                      Exchange: {rev.task_title}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )) : (
-              <div className="col-span-2 p-12 text-center border-2 border-dashed border-border rounded-[48px] text-muted-foreground font-bold">
-                No reviews yet. Complete your first exchange to see feedback here!
-              </div>
+        {/* ── REVIEWS ──────────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
+        >
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-bold">Reviews</h2>
+            {reviews.length > 0 && (
+              <span className="ml-auto text-xs text-muted-foreground font-medium">
+                {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+              </span>
             )}
           </div>
-        </div>
+
+          {reviews.length === 0 ? (
+            <div className="py-14 text-center">
+              <Star className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-sm font-medium text-muted-foreground">No reviews yet</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Complete an exchange to receive feedback</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {reviews.map((rev, i) => (
+                <li key={i} className="px-6 py-5 hover:bg-muted/30 transition-colors">
+                  <div className="flex gap-4">
+                    {/* Avatar */}
+                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">
+                      {(rev.reviewer_name || rev.reviewer_id || 'P')[0].toUpperCase()}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Reviewer name + date */}
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-sm font-semibold">{rev.reviewer_name || 'Peer Reviewer'}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {Array.from({ length: 5 }).map((_, star) => (
+                            <Star
+                              key={star}
+                              className={cn(
+                                "h-3 w-3",
+                                star < rev.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Comment */}
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
+                        {rev.comment || "Great exchange!"}
+                      </p>
+
+                      {/* Tags + exchange label */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {rev.skill_level && (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/8 text-primary border border-primary/10">
+                            {rev.skill_level}
+                          </span>
+                        )}
+                        {rev.tags && rev.tags.map((tag: string) => (
+                          <span key={tag} className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
+                            {tag}
+                          </span>
+                        ))}
+                        {rev.task_title && (
+                          <span className="text-[10px] text-muted-foreground/50 ml-auto">
+                            {rev.task_title}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </motion.div>
+
       </main>
     </div>
   )
