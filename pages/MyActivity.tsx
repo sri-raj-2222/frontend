@@ -64,7 +64,7 @@ export default function MyActivity() {
       let expressIncoming: ExchangeRequest[] = []
       let expressOutgoing: ExchangeRequest[] = []
       try {
-        const expressRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
+        const expressRes = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
         if (expressRes.ok) {
           const expressData = await expressRes.json()
           expressIncoming = expressData.incoming || []
@@ -179,7 +179,7 @@ export default function MyActivity() {
         let data: any = null
 
         if (requestType === 'match') {
-          const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${request.id}`, {
+          const res = await fetch(`http://localhost:5000/api/match-requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -187,7 +187,7 @@ export default function MyActivity() {
           data = await res.json()
         } else {
           const taskId = request.task_id || 'null'
-          const res = await fetch(`https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`, {
+          const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -255,13 +255,13 @@ export default function MyActivity() {
       let requesterName = request.requester?.name || ''
       if (!requesterName) {
         try {
-          const nr = await fetch(`https://backend-a41z.onrender.com/api/user-name/${requesterUserId}`)
+          const nr = await fetch(`http://localhost:5000/api/user-name/${requesterUserId}`)
           if (nr.ok) { const nd = await nr.json(); requesterName = nd.name || '' }
         } catch { /* ignore */ }
       }
       if (!requesterName) requesterName = requesterUserId?.split('-')[0] || 'User'
 
-      const notifyRes = await fetch('https://backend-a41z.onrender.com/api/accept-and-notify', {
+      const notifyRes = await fetch('http://localhost:5000/api/accept-and-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -296,10 +296,10 @@ export default function MyActivity() {
       if (isLocalRequest) {
         let endpoint = ''
         if (requestType === 'match') {
-          endpoint = `https://backend-a41z.onrender.com/api/match-requests/${request.id}`
+          endpoint = `http://localhost:5000/api/match-requests/${request.id}`
         } else {
           const taskId = request.task_id || 'null'
-          endpoint = `https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`
+          endpoint = `http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`
         }
         await fetch(endpoint, {
           method: 'PATCH',

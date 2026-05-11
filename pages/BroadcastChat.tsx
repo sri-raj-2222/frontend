@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/auth-context"
 import { io } from "socket.io-client"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 const socket = io(API)
 
 interface ChatMessage {

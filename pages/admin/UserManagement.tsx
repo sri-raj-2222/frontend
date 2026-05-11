@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 const PAGE_SIZE = 10
 
 // ── Types ──────────────────────────────────────────────────────────────────────

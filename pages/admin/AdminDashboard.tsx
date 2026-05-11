@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase"
 import UserManagement from "./UserManagement"
 import ReportsPanel from "./ReportsPanel"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 // ── Status badge colours ──────────────────────────────────────────────────────
 const badge: Record<string, string> = {

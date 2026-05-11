@@ -51,7 +51,7 @@ export default function Dashboard() {
     if (!user) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/notifications?user_id=${user.id}`)
+      const res = await fetch(`http://localhost:5000/api/notifications?user_id=${user.id}`)
       if (!res.ok) throw new Error("Failed to fetch notifications")
       const data = await res.json()
       
@@ -82,7 +82,7 @@ export default function Dashboard() {
       // 1. Fetch from local Express DB
       let localPosts: Post[] = []
       try {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/posts`)
+        const res = await fetch(`http://localhost:5000/api/user/${user.id}/posts`)
         if (res.ok) localPosts = await res.json()
       } catch { /* server may be offline */ }
 

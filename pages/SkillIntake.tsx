@@ -142,7 +142,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
       if (taskErr) console.warn('[SkillIntake] Supabase task upsert warning:', taskErr.message)
 
       // Mirror to local Express DB (non-blocking — don't throw on failure)
-      fetch("https://backend-a41z.onrender.com/api/tasks", {
+      fetch("http://localhost:5000/api/tasks", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({

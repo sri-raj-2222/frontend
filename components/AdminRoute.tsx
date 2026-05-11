@@ -2,7 +2,7 @@
 import { Navigate } from "react-router-dom"
 import { Shield } from "lucide-react"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)

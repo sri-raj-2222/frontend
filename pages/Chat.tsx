@@ -23,7 +23,7 @@ import { io } from "socket.io-client"
 import type { Message, Room, ConnectionStage, Review } from "@/types"
 import { supabase } from "@/lib/supabase"
 
-const socket = io("https://backend-a41z.onrender.com")
+const socket = io("http://localhost:5000")
 
 
 export default function Chat() {
@@ -89,7 +89,7 @@ export default function Chat() {
 
     // 1. Try local Express DB
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
+      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
       if (res.ok) localRooms = await res.json()
     } catch { /* server may be offline */ }
 
@@ -164,7 +164,7 @@ export default function Chat() {
           .order('created_at', { ascending: true })
         setMessages(data || [])
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${roomId}/messages`)
+        const res = await fetch(`http://localhost:5000/api/chat/rooms/${roomId}/messages`)
         const data = await res.json()
         setMessages(data || [])
       }
@@ -179,7 +179,7 @@ export default function Chat() {
         setStages(stages || [])
         setRoomReviews(reviews || [])
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${roomId}/status`)
+        const res = await fetch(`http://localhost:5000/api/connections/${roomId}/status`)
         const data = await res.json()
         setStages(data.stages || [])
         setRoomReviews(data.reviews || [])
@@ -213,7 +213,7 @@ export default function Chat() {
     const interval = setInterval(async () => {
       attempts++
       try {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
+        const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
         if (res.ok) {
           const freshRooms: any[] = await res.json()
           const target = freshRooms.find((r: any) => r.id === initialRoomId)
@@ -323,7 +323,7 @@ export default function Chat() {
   const handleSaveNotes = async () => {
     if (!activeRoom) return
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
+      const res = await fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes })
@@ -395,7 +395,7 @@ export default function Chat() {
       // Send BOTH notes and chatHistory to the server in all cases.
       // Mode A (Polish): server will enrich notes WITH the chat context.
       // Mode B (Generate): server creates structured notes purely from chat.
-      const res = await fetch('https://backend-a41z.onrender.com/api/ai/analyze-notes', {
+      const res = await fetch('http://localhost:5000/api/ai/analyze-notes', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -420,7 +420,7 @@ export default function Chat() {
       setAiResult({ action: data.action, summary: data.summary })
 
       // Auto-save so both peers see the updated notes
-      fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
+      fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ notes: data.improved }),
@@ -456,7 +456,7 @@ export default function Chat() {
         })
         loadRoomStatus(activeRoom.id, true)
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${activeRoom.id}/confirm`, {
+        const res = await fetch(`http://localhost:5000/api/connections/${activeRoom.id}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -482,7 +482,7 @@ export default function Chat() {
     if (!partnerId) { console.error('Could not resolve partner ID'); return }
 
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/reviews`, {
+      const res = await fetch(`http://localhost:5000/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -517,7 +517,7 @@ export default function Chat() {
   const handleRaiseDispute = async () => {
     if (!activeRoom || !user) return
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/disputes`, {
+      const res = await fetch(`http://localhost:5000/api/disputes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -543,7 +543,7 @@ export default function Chat() {
     if (!uploadData.title || !user || !activeRoom) return
     setUploading(true)
     try {
-      const res = await fetch('https://backend-a41z.onrender.com/api/notes/upload', {
+      const res = await fetch('http://localhost:5000/api/notes/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
