@@ -16,6 +16,7 @@ import {
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import AuthDialog from "@/components/ui/auth-dialog"
+import logo from "@/assets/logo.png"
 
 export default function Home() {
   return (
@@ -140,7 +141,7 @@ export default function Home() {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-6 group">
                 <div className="h-10 w-10 flex items-center justify-center">
-                  <img src="/logo.png" alt="ShareSphere" className="h-full w-auto object-contain dark:invert transition-all" />
+                  <img src={logo} alt="ShareSphere" className="h-full w-auto object-contain dark:invert transition-all" />
                 </div>
                 <span className="font-black text-xl tracking-tighter">ShareSphere</span>
               </div>

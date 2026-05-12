@@ -27,6 +27,8 @@ import { supabase } from "@/lib/supabase"
 import { useSocket } from "@/contexts/socket-context"
 import type { Notification, Room } from "@/types"
 
+import logo from "@/assets/logo.png"
+
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuth()
   const navigate = useNavigate()
@@ -93,7 +95,7 @@ export function Navbar() {
     // Load initial data
     Promise.all([fetchNotifications(), fetchRooms()])
 
-    // Supabase Realtime � new notification inserted for this user
+    // Supabase Realtime  new notification inserted for this user
     const channel = supabase
       .channel(`notifications:${CURRENT_USER_ID}`)
       .on('postgres_changes', {
@@ -107,7 +109,7 @@ export function Navbar() {
       })
       .subscribe()
 
-    // Socket listeners � only attach if socket is ready (provided by SocketContext)
+    // Socket listeners  only attach if socket is ready (provided by SocketContext)
     if (!socket) return () => { supabase.removeChannel(channel) }
 
     const onRequestNew = (data: Notification) => {
@@ -124,13 +126,13 @@ export function Navbar() {
       setNotifications(prev => [{
         id: Date.now().toString(),
         type: 'request_accepted',
-        message: `?? Match confirmed! "${data.taskTitle}" � Opening chat...`,
+        message: `?? Match confirmed! "${data.taskTitle}"  Opening chat...`,
         is_read: false,
         created_at: new Date().toISOString()
       } as unknown as Notification, ...prev])
       setUnreadCount(prev => prev + 1)
       fetchRooms()
-      // Use React Router navigate � no full reload, no new tab
+      // Use React Router navigate  no full reload, no new tab
       navigate(`/chat?room=${data.roomId}`)
     }
 
@@ -166,7 +168,7 @@ export function Navbar() {
 
     try {
       if (type === 'match_request') {
-        // Match request � handled by local Express
+        // Match request  handled by local Express
         const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -198,7 +200,7 @@ export function Navbar() {
             await supabase.from('tasks').update({ status: 'matched', assigned_to: request.requester_id }).eq('id', request.task_id)
           }
 
-          // 2. Fetch requester name � try profiles first, then local DB
+          // 2. Fetch requester name  try profiles first, then local DB
           let requesterName = ''
           try {
             const { data: profile } = await supabase
@@ -230,7 +232,7 @@ export function Navbar() {
           roomId = existingRooms?.[0]?.id ?? null
 
           if (!roomId) {
-            // Create room in Supabase (no metadata column � doesn't exist in schema)
+            // Create room in Supabase (no metadata column  doesn't exist in schema)
             const { data: newRoom, error: roomError } = await supabase
               .from('chat_rooms')
               .insert({
@@ -339,7 +341,7 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 group">
             <div className="h-10 w-10 flex items-center justify-center transition-transform group-hover:scale-105">
-              <img src="/logo.png" alt="ShareSphere" className="h-full w-auto object-contain dark:invert transition-all" />
+              <img src={logo} alt="ShareSphere" className="h-full w-auto object-contain dark:invert transition-all" />
             </div>
             <span className="font-bold text-xl tracking-tight text-foreground hidden sm:block">
               ShareSphere
