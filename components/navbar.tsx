@@ -578,9 +578,9 @@ export function Navbar() {
                           ))
                         )}
                       </div>
-                      <a href="/notifications" className="block p-4 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all">
+                      <Link to="/notifications" className="block p-4 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all">
                         View All Activity <ChevronRight className="inline h-3 w-3 ml-1" />
-                      </a>
+                      </Link>
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
 
@@ -154,9 +154,9 @@ export default function AdminLogin() {
 
           {/* Back link */}
           <p className="text-center mt-5">
-            <a href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               ← Return to ShareSphere
-            </a>
+            </Link>
           </p>
         </div>
       </motion.div>
