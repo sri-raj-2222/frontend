@@ -205,7 +205,7 @@ function ClassDetailModal({
             <div className="mb-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3">
               <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                You will earn <span className="text-foreground font-black">+{broadcast.reward_credits} credits</span> added to your balance when you attend the session. Credits are awarded only to attendees — no-shows receive nothing.
+                You will earn <span className="text-foreground font-black">+{broadcast.reward_credits} credits</span> added to your balance when you attend the session. Credits are awarded only to attendees ï¿½ no-shows receive nothing.
               </p>
             </div>
           )}
@@ -227,7 +227,7 @@ function ClassDetailModal({
               className="flex-1 h-14 rounded-2xl font-black shadow-none hover:scale-[1.02] active:scale-[0.98] transition-all gap-2 bg-primary text-primary-foreground"
             >
               {enrolling
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Enrolling…</>
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Enrollingï¿½</>
                 : isFull
                   ? 'Class Full'
                   : <><CheckCircle2 className="h-4 w-4" /> Confirm Enrollment</>}
@@ -405,7 +405,7 @@ export default function TutorDiscovery() {
             <div className="relative group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search topics, tutors, or skills…"
+                placeholder="Search topics, tutors, or skillsï¿½"
                 className="h-16 pl-14 pr-6 rounded-[24px] border-border bg-card font-bold text-lg focus:ring-primary shadow-none" />
             </div>
           </div>
@@ -658,7 +658,7 @@ export default function TutorDiscovery() {
                         </div>
                       )}
 
-                      {/* Class chat — always visible for non-cancelled classes */}
+                      {/* Class chat ï¿½ always visible for non-cancelled classes */}
                       {!isCancelled && (
                         <Button
                           onClick={() => navigate(`/broadcast-chat/${b.id}`)}

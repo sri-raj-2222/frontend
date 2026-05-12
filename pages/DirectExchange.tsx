@@ -98,7 +98,7 @@ export default function DirectExchange() {
     if (!user?.id) return
     if (!silent) setLoading(true)
     try {
-      // Step 1 — load already-sent requests so buttons show correct state
+      // Step 1 ï¿½ load already-sent requests so buttons show correct state
       const { data: myRequests } = await supabase
         .from('task_requests')
         .select('task_id')
@@ -106,15 +106,15 @@ export default function DirectExchange() {
         .in('status', ['pending', 'accepted'])
       if (myRequests) setRequestedTasks(myRequests.map((r: { task_id: string }) => r.task_id))
 
-      // Step 2 — server does the bilateral match:
-      //   Person A's offering  n  Person B's wanting  ? Ø
+      // Step 2 ï¿½ server does the bilateral match:
+      //   Person A's offering  n  Person B's wanting  ? ï¿½
       //   AND
-      //   Person B's offering  n  Person A's wanting  ? Ø
+      //   Person B's offering  n  Person A's wanting  ? ï¿½
       //   ? only then recommend Person B to Person A (and vice-versa)
       const recRes = await fetch(`https://backend-a41z.onrender.com/api/recommendations/${user.id}`)
       const matched: Task[] = recRes.ok ? await recRes.json().catch(() => []) : []
 
-      // Step 3 — if SkillIntake passed an override skill, narrow further
+      // Step 3 ï¿½ if SkillIntake passed an override skill, narrow further
       const filtered: Task[] = overrideWanting
         ? matched.filter((t: Task) => {
           const offers = (Array.isArray(t.offering) ? t.offering : [t.offering || ''])
@@ -128,7 +128,7 @@ export default function DirectExchange() {
 
       setTasks(filtered)
 
-      // Step 4 — AI picks the best 3 from the already bilateral-filtered pool
+      // Step 4 ï¿½ AI picks the best 3 from the already bilateral-filtered pool
       if (filtered.length > 0) {
         // their wanting = what I offer | their offering = what I need
         const myOffers = Array.from(new Set(
@@ -253,11 +253,11 @@ export default function DirectExchange() {
   const handleRequest = async (task: Task) => {
     if (requestedTasks.includes(task.id)) return
 
-    // Step 1 — Disable the button immediately on click
+    // Step 1 ï¿½ Disable the button immediately on click
     setRequestedTasks(prev => [...prev, task.id])
 
     try {
-      // Step 2 — Insert into task_requests
+      // Step 2 ï¿½ Insert into task_requests
       const { data: reqData, error: reqError } = await supabase
         .from('task_requests')
         .insert({
@@ -275,13 +275,13 @@ export default function DirectExchange() {
         return
       }
 
-      // Step 3 — Update task status to 'requested'
+      // Step 3 ï¿½ Update task status to 'requested'
       await supabase
         .from('tasks')
         .update({ status: 'requested' })
         .eq('id', task.id)
 
-      // Step 2 — Send Notification to Owner
+      // Step 2 ï¿½ Send Notification to Owner
       const offering = Array.isArray(task.wanting) ? task.wanting.join(", ") : task.wanting
       const notificationMessage = `${user?.name || 'Someone'} wants to exchange ${offering} for your "${task.title}"`
 

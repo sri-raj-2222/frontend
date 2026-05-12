@@ -274,7 +274,7 @@ export default function Onboarding() {
                         <FileText className="w-6 h-6 text-primary" />
                       </div>
                       <p className="font-medium">{formData.resume.file.name}</p>
-                      <p className="text-xs text-muted-foreground">{(formData.resume.file.size / (1024 * 1024)).toFixed(2)} MB • Click to replace</p>
+                      <p className="text-xs text-muted-foreground">{(formData.resume.file.size / (1024 * 1024)).toFixed(2)} MB ï¿½ Click to replace</p>
                     </div>
                   ) : (
                     <div className="space-y-2">

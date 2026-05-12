@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, MessageSquare, X } from 'lucide-react';
 import { cn } from '@/lib/utils';

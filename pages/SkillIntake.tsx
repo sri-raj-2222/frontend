@@ -92,7 +92,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // Load profile skills silently — used as priority hints only, never blocks the form
+  // Load profile skills silently ï¿½ used as priority hints only, never blocks the form
   useEffect(() => {
     if (!user?.id) return
     supabase
@@ -111,7 +111,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
     setWantingSuggestions(getSkillSuggestions(wanting))
   }, [wanting, wantingConfirmed])
 
-  // Offering suggestions — profile skills come first as hints
+  // Offering suggestions ï¿½ profile skills come first as hints
   useEffect(() => {
     if (offeringConfirmed) { setOfferingSuggestions([]); return }
     setOfferingSuggestions(getSkillSuggestions(offering, profileSkills))
@@ -141,7 +141,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
       )
       if (taskErr) console.warn('[SkillIntake] Supabase task upsert warning:', taskErr.message)
 
-      // Mirror to local Express DB (non-blocking — don't throw on failure)
+      // Mirror to local Express DB (non-blocking ï¿½ don't throw on failure)
       fetch("https://backend-a41z.onrender.com/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -156,13 +156,13 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
         }),
       }).catch(() => { })
 
-      // Save offering skill as a profile hint — ignore if unique constraint already exists
+      // Save offering skill as a profile hint ï¿½ ignore if unique constraint already exists
       try {
         await supabase.from('user_skills').upsert(
           { user_id: user?.id, skill_name: offeringVal, skill_type: 'offering' },
           { onConflict: 'user_id,skill_name,skill_type' }
         )
-      } catch { /* non-critical — silently skip */ }
+      } catch { /* non-critical ï¿½ silently skip */ }
 
       setShowSuccess(true)
       setTimeout(() => onComplete(wantingVal, { top_matches: [], also_try: [] }), 2000)
@@ -265,7 +265,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
                       ))
                     ) : (
                       <p className="px-6 py-4 text-xs text-muted-foreground font-medium">
-                        No matches — click &quot;Use…&quot; above to add it.
+                        No matches ï¿½ click &quot;Useï¿½&quot; above to add it.
                       </p>
                     )}
                   </div>
@@ -299,7 +299,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
               </div>
               <h2 className="text-3xl font-black mb-3">Task Posted!</h2>
               <p className="text-muted-foreground font-medium max-w-xs mx-auto">
-                Your request is live. Finding matches now…
+                Your request is live. Finding matches nowï¿½
               </p>
             </motion.div>
           ) : (
@@ -311,7 +311,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
                 </div>
                 <h2 className="text-3xl font-black tracking-tight mb-2">Post a New Task</h2>
                 <p className="text-muted-foreground font-medium">
-                  Type any skill — we have 100+ suggestions ready.
+                  Type any skill ï¿½ we have 100+ suggestions ready.
                 </p>
               </div>
 
@@ -321,7 +321,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
                 value={wanting}
                 confirmed={wantingConfirmed}
                 suggestions={wantingSuggestions}
-                placeholder="e.g. React, Video Editing, Python…"
+                placeholder="e.g. React, Video Editing, Pythonï¿½"
                 onChange={v => { setWanting(v); setWantingConfirmed(false) }}
                 onConfirm={v => { setWanting(v); setWantingConfirmed(true) }}
                 onClear={() => { setWanting(""); setWantingConfirmed(false) }}
@@ -333,7 +333,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
                 value={offering}
                 confirmed={offeringConfirmed}
                 suggestions={offeringSuggestions}
-                placeholder="e.g. UI Design, Django, Photography…"
+                placeholder="e.g. UI Design, Django, Photographyï¿½"
                 onChange={v => { setOffering(v); setOfferingConfirmed(false) }}
                 onConfirm={v => { setOffering(v); setOfferingConfirmed(true) }}
                 onClear={() => { setOffering(""); setOfferingConfirmed(false) }}
@@ -345,7 +345,7 @@ export default function SkillIntake({ onComplete }: SkillIntakeProps) {
                 disabled={!canSubmit || submitting}
                 className="w-full h-16 rounded-[28px] bg-foreground text-background font-black text-base shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
               >
-                {submitting ? "Posting…" : "Confirm & Post Task ?"}
+                {submitting ? "Postingï¿½" : "Confirm & Post Task ?"}
               </Button>
 
               <button
