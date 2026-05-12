@@ -410,7 +410,17 @@ export default function WorkRoom() {
                   })
                 )}
               </div>
-              {!isCompleted && (
+              {isCompleted ? (
+                <div className="p-4 border-t border-border bg-secondary/20 flex flex-col items-center justify-center gap-2 py-8">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <Trophy className="h-5 w-5 text-emerald-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-black text-foreground">Project Completed & Chat Closed</p>
+                    <p className="text-[11px] text-muted-foreground">Credits have been distributed to all contributors. This workspace is now read-only.</p>
+                  </div>
+                </div>
+              ) : (
                 <div className="p-4 border-t border-border bg-card/5">
                   <div className="flex gap-3 items-end">
                     <textarea

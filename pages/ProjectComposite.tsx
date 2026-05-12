@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Users, Trophy, Loader2, Workflow, Briefcase,
   CheckCircle2, XCircle, Clock, ChevronRight, Hourglass,
-  Star, TrendingUp, AlertCircle
+  Star, TrendingUp, AlertCircle, MessageSquare
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,7 @@ interface Project {
   status: string
   members: { user_id: string; role_name: string; user_name: string }[]
   created_at: string
+  room_id?: string
 }
 
 interface ProjectRequest {
@@ -62,19 +63,45 @@ export default function ProjectComposite() {
 
   // Post-project modal state
   const [showPanel, setShowPanel] = useState(false)
+  const [panelStep, setPanelStep] = useState<"project" | "roles" | "review" | "success">("project")
+
+  
+  // Project Info
   const [panelTitle, setPanelTitle] = useState("")
   const [panelDesc, setPanelDesc] = useState("")
   const [panelDeadline, setPanelDeadline] = useState("")
   const [panelPersons, setPanelPersons] = useState(1)
   const [panelReward, setPanelReward] = useState(50)
+  
+  // Roles Info
+  const [panelRoles, setPanelRoles] = useState<{ name: string; description: string; credits: number; skills: string[] }[]>([])
+  
   const [panelPosting, setPanelPosting] = useState(false)
   const [panelError, setPanelError] = useState<string | null>(null)
-  const [panelSuccess, setPanelSuccess] = useState(false)
 
   const openPanel = () => {
     setPanelTitle(""); setPanelDesc(""); setPanelDeadline("")
-    setPanelPersons(1); setPanelReward(50); setPanelError(null); setPanelSuccess(false)
+    setPanelPersons(1); setPanelReward(50); setPanelError(null)
+    setPanelStep("project"); setPanelRoles([])
     setShowPanel(true)
+  }
+
+  const handleNextFromProject = () => {
+    const perPerson = Math.floor(panelReward / panelPersons)
+    const initialRoles = Array.from({ length: panelPersons }, (_, i) => ({
+      name: "",
+      description: "",
+      credits: i === panelPersons - 1 ? panelReward - perPerson * (panelPersons - 1) : perPerson,
+      skills: []
+    }))
+    setPanelRoles(initialRoles)
+    setPanelStep("roles")
+  }
+
+
+
+  const updateRole = (idx: number, field: string, value: any) => {
+    setPanelRoles(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
   }
 
   const handlePanelPost = async () => {
@@ -82,12 +109,10 @@ export default function ProjectComposite() {
     setPanelPosting(true)
     setPanelError(null)
     try {
-      const perPerson = Math.floor(panelReward / panelPersons)
-      const roles = Array.from({ length: panelPersons }, (_, i) => ({
+      const rolesWithIds = panelRoles.map(r => ({
+        ...r,
         id: crypto.randomUUID(),
-        name: `Contributor ${i + 1}`,
-        skills: [],
-        credits: i === panelPersons - 1 ? panelReward - perPerson * (panelPersons - 1) : perPerson,
+        filled: false
       }))
       const res = await fetch(`${API}/api/projects`, {
         method: "POST",
@@ -95,7 +120,7 @@ export default function ProjectComposite() {
         body: JSON.stringify({
           title: panelTitle.trim(),
           description: panelDesc.trim(),
-          roles,
+          roles: rolesWithIds,
           min_team_size: panelPersons,
           total_credits: panelReward,
           deadline: panelDeadline || null,
@@ -105,19 +130,22 @@ export default function ProjectComposite() {
         }),
       })
       if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Failed to post") }
-      setPanelSuccess(true)
-      setTimeout(() => { setShowPanel(false); setPanelSuccess(false); load() }, 2000)
+      setPanelStep("success")
+      setTimeout(() => { setShowPanel(false); load() }, 2000)
     } catch (e) {
       setPanelError(e instanceof Error ? e.message : "Failed to post project")
     } finally { setPanelPosting(false) }
   }
 
-  const panelCanPost =
+  const canGoToRoles =
     panelTitle.trim().length >= 3 &&
     panelDesc.trim().length >= 10 &&
     panelPersons >= 1 &&
     panelReward > 0 &&
     panelReward <= balance
+
+
+  const canGoToReview = panelRoles.length > 0 && panelRoles.every(r => r.name.trim().length >= 3 && r.description.trim().length >= 5)
 
   const load = useCallback(async () => {
     if (!user) return
@@ -298,14 +326,29 @@ export default function ProjectComposite() {
                           <p className="text-xs text-muted-foreground">Applied for: {r.role_name}</p>
                         </div>
                       </div>
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md border shrink-0",
-                        r.status === 'accepted' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                          : r.status === 'rejected' ? "bg-destructive/10 text-destructive border-destructive/20"
-                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                      )}>
-                        {r.status}
-                      </span>
+                      <div className="flex items-center gap-3 shrink-0">
+                        {r.status === 'accepted' && r.project?.room_id && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/tasks/project/${r.project_id}/room`);
+                            }}
+                            className="h-7 px-3 rounded-lg text-[10px] font-bold gap-1.5"
+                          >
+                            <MessageSquare className="h-3 w-3" /> Workspace
+                          </Button>
+                        )}
+                        <span className={cn(
+                          "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md border shrink-0",
+                          r.status === 'accepted' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                            : r.status === 'rejected' ? "bg-destructive/10 text-destructive border-destructive/20"
+                              : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                        )}>
+                          {r.status}
+                        </span>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -347,7 +390,8 @@ export default function ProjectComposite() {
           </div>
         )}
       </main>
-      {/* Post-Project Modal — styled like SkillIntake */}
+
+      {/* Post-Project Modal — Multi-step Flow */}
       <AnimatePresence>
         {showPanel && (
           <div className="fixed inset-0 z-[150] bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto">
@@ -358,7 +402,7 @@ export default function ProjectComposite() {
               className="w-full max-w-xl bg-card border border-border rounded-[48px] shadow-2xl p-10 md:p-14 relative my-auto"
             >
               <AnimatePresence mode="wait">
-                {panelSuccess ? (
+                {panelStep === "success" ? (
                   <motion.div
                     key="success"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -373,131 +417,215 @@ export default function ProjectComposite() {
                       Your project is live. Contributors will be notified now…
                     </p>
                   </motion.div>
+                ) : panelStep === "project" ? (
+                  <motion.div key="project" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                    <div className="text-center">
+                      <div className="h-16 w-16 rounded-[24px] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-sm border border-primary/10">
+                        <Workflow className="h-8 w-8 text-primary" />
+                      </div>
+                      <h2 className="text-4xl font-black tracking-tight mb-2 font-outfit">Post a Project</h2>
+                      <p className="text-muted-foreground font-semibold text-xs uppercase tracking-widest">Step 1: Project Overview</p>
+                    </div>
+
+                    <div className="space-y-5">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-1">Title *</label>
+                        <Input 
+                          value={panelTitle} 
+                          onChange={e => setPanelTitle(e.target.value)} 
+                          placeholder="e.g. Build a Portfolio Website" 
+                          className="h-14 rounded-2xl border-primary/5 bg-secondary/30 font-bold placeholder:text-muted-foreground/30 focus:bg-background transition-all" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-1">Description *</label>
+                        <textarea 
+                          value={panelDesc} 
+                          onChange={e => setPanelDesc(e.target.value)} 
+                          placeholder="What's this project about?" 
+                          className="w-full h-28 px-5 py-4 rounded-3xl border border-primary/5 bg-secondary/30 text-sm font-bold resize-none outline-none focus:border-primary/20 focus:bg-background transition-all placeholder:text-muted-foreground/30" 
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-1">Number of Roles *</label>
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            max={10} 
+                            value={panelPersons} 
+                            onChange={e => setPanelPersons(Math.max(1, Number(e.target.value)))} 
+                            className="h-14 rounded-2xl border-primary/5 bg-secondary/30 font-bold focus:bg-background transition-all" 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 ml-1">Total Credits *</label>
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            value={panelReward} 
+                            onChange={e => setPanelReward(Math.max(1, Number(e.target.value)))} 
+                            className="h-14 rounded-2xl border-primary/5 bg-secondary/30 font-bold focus:bg-background transition-all" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {panelReward > balance && (
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-[11px] font-bold">
+                        <AlertCircle className="h-4 w-4" /> Need {panelReward - balance} more credits in your escrow.
+                      </motion.div>
+                    )}
+
+                    <div className="space-y-4">
+                      <Button 
+                        onClick={handleNextFromProject} 
+                        disabled={!canGoToRoles} 
+                        className="w-full h-16 rounded-[24px] font-black text-lg uppercase tracking-widest shadow-xl shadow-primary/20 active:scale-95 transition-all"
+                      >
+                        Define Roles →
+                      </Button>
+                      <button 
+                        onClick={() => setShowPanel(false)} 
+                        className="w-full text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        Cancel Posting
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : panelStep === "roles" ? (
+                  <motion.div 
+                    key="roles" 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -20 }} 
+                    className="space-y-8"
+                  >
+                    <div className="text-center">
+                      <div className="h-16 w-16 rounded-[24px] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-sm border border-primary/10">
+                        <Users className="h-8 w-8 text-primary" />
+                      </div>
+                      <h2 className="text-4xl font-black tracking-tight mb-2 font-outfit">Define Roles</h2>
+                      <p className="text-muted-foreground font-semibold text-xs uppercase tracking-widest">Step 2: Assign Responsibilities</p>
+                    </div>
+
+                    <div className="max-h-[450px] overflow-y-auto pr-4 custom-scrollbar space-y-6">
+                      <motion.div 
+                        initial="hidden"
+                        animate="show"
+                        variants={{
+                          hidden: { opacity: 0 },
+                          show: {
+                            opacity: 1,
+                            transition: {
+                              staggerChildren: 0.1
+                            }
+                          }
+                        }}
+                        className="space-y-6"
+                      >
+                        {panelRoles.map((role, idx) => (
+                          <motion.div 
+                            key={idx}
+                            variants={{
+                              hidden: { opacity: 0, x: -20 },
+                              show: { opacity: 1, x: 0 }
+                            }}
+                            className="p-6 rounded-[32px] border border-primary/5 bg-secondary/10 space-y-5"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">Role {idx + 1}</span>
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                                <Trophy className="h-3.5 w-3.5" />
+                                <Input 
+                                  type="number" 
+                                  value={role.credits} 
+                                  onChange={e => updateRole(idx, "credits", Number(e.target.value))} 
+                                  className="w-20 h-8 rounded-lg bg-background border-primary/10 text-center font-black p-0"
+                                />
+                                <span>cr</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Role Title</label>
+                                <Input 
+                                  value={role.name} 
+                                  onChange={e => updateRole(idx, "name", e.target.value)} 
+                                  placeholder="e.g. Lead Designer" 
+                                  className="h-12 rounded-xl border-primary/5 bg-background font-bold" 
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Description</label>
+                                <textarea 
+                                  value={role.description} 
+                                  onChange={e => updateRole(idx, "description", e.target.value)} 
+                                  placeholder="What will they be responsible for?" 
+                                  className="w-full h-24 px-4 py-3 rounded-2xl border border-primary/5 bg-background text-sm font-bold resize-none outline-none focus:border-primary/20 transition-all" 
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button variant="outline" onClick={() => setPanelStep("project")} className="flex-1 h-16 rounded-[24px] font-black text-base uppercase tracking-widest border-primary/10 hover:bg-primary/5">Back</Button>
+                      <Button onClick={() => setPanelStep("review")} disabled={!canGoToReview} className="flex-[2] h-16 rounded-[24px] font-black text-base uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-95">
+                        Review Project →
+                      </Button>
+                    </div>
+                  </motion.div>
+
                 ) : (
-                  <motion.div key="form" exit={{ opacity: 0, y: -20 }} className="space-y-8">
-                    {/* Header */}
+                  <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                     <div className="text-center">
                       <div className="h-14 w-14 rounded-[20px] bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                        <Workflow className="h-7 w-7 text-primary" />
+                        <CheckCircle2 className="h-7 w-7 text-primary" />
                       </div>
-                      <h2 className="text-3xl font-black tracking-tight mb-2">Post a Project</h2>
-                      <p className="text-muted-foreground font-medium">
-                        Define your project and hire the right people.
-                      </p>
-                      <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black">
-                        <Trophy className="h-3 w-3" /> {balance} credits available
+                      <h2 className="text-3xl font-black tracking-tight mb-2">Review & Post</h2>
+                      <p className="text-muted-foreground font-medium text-sm">Everything look correct?</p>
+                    </div>
+
+                    <div className="bg-secondary/20 border border-border rounded-3xl p-6 space-y-4">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Project</p>
+                        <p className="font-bold text-lg">{panelTitle}</p>
                       </div>
-                    </div>
-
-                    {/* Project Name */}
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                        Project Name *
-                      </label>
-                      <Input
-                        value={panelTitle}
-                        onChange={e => setPanelTitle(e.target.value)}
-                        placeholder="e.g. Build a Portfolio Website"
-                        className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                        Description *
-                      </label>
-                      <textarea
-                        value={panelDesc}
-                        onChange={e => setPanelDesc(e.target.value)}
-                        placeholder="Describe scope, goals, and what contributors will work on…"
-                        className="w-full px-6 py-4 rounded-[24px] border border-border bg-secondary/20 text-sm font-bold shadow-inner resize-none focus:outline-none focus:border-primary/40 min-h-[96px]"
-                      />
-                    </div>
-
-                    {/* Deadline */}
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                        Deadline (optional)
-                      </label>
-                      <Input
-                        type="date"
-                        value={panelDeadline}
-                        onChange={e => setPanelDeadline(e.target.value)}
-                        min={new Date().toISOString().split("T")[0]}
-                        className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
-                      />
-                    </div>
-
-                    {/* Persons + Reward */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                          Persons to Hire *
-                        </label>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={10}
-                          value={panelPersons}
-                          onChange={e => setPanelPersons(Math.max(1, Number(e.target.value)))}
-                          className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
-                        />
+                      <div className="h-px bg-border/50" />
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Roles ({panelPersons})</p>
+                        <div className="space-y-2">
+                          {panelRoles.map((r, i) => (
+                            <div key={i} className="flex justify-between items-center bg-background/50 p-3 rounded-xl border border-border">
+                              <span className="text-sm font-bold">{r.name}</span>
+                              <span className="text-xs font-black text-primary">{r.credits} cr</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
-                          Reward (credits) *
-                        </label>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={panelReward}
-                          onChange={e => setPanelReward(Math.max(1, Number(e.target.value)))}
-                          className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
-                        />
+                      <div className="h-px bg-border/50" />
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-xs font-black uppercase text-muted-foreground">Total Reward</span>
+                        <span className="text-lg font-black text-primary">{panelReward} credits</span>
                       </div>
                     </div>
 
-                    {/* Per-person summary */}
-                    <div className="flex items-center justify-between px-5 py-3 rounded-[20px] bg-secondary/30 border border-border text-sm">
-                      <span className="font-black text-muted-foreground text-[11px] uppercase tracking-widest">Each contributor earns</span>
-                      <span className="font-black text-primary">
-                        ~{panelPersons > 0 ? Math.floor(panelReward / panelPersons) : 0} credits
-                      </span>
-                    </div>
-
-                    {/* Balance warning */}
-                    {panelReward > balance && (
-                      <div className="flex items-center gap-3 px-5 py-3 rounded-[20px] bg-destructive/5 border border-destructive/20 text-destructive text-xs font-black">
-                        <AlertCircle className="h-4 w-4 shrink-0" />
-                        Need {panelReward - balance} more credits (you have {balance})
-                      </div>
-                    )}
-
-                    {/* API error */}
                     {panelError && (
-                      <div className="flex items-center gap-3 px-5 py-3 rounded-[20px] bg-destructive/10 border border-destructive/20 text-destructive text-sm font-black">
-                        <AlertCircle className="h-4 w-4 shrink-0" /> {panelError}
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold">
+                        <AlertCircle className="h-4 w-4" /> {panelError}
                       </div>
                     )}
 
-                    {/* Submit */}
-                    <Button
-                      onClick={handlePanelPost}
-                      disabled={!panelCanPost || panelPosting}
-                      className="w-full h-16 rounded-[28px] bg-foreground text-background font-black text-base shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
-                    >
-                      {panelPosting
-                        ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Posting…</>
-                        : "Confirm & Post Project →"}
-                    </Button>
-
-                    <button
-                      onClick={() => !panelPosting && setShowPanel(false)}
-                      className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      Cancel
-                    </button>
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => setPanelStep("roles")} className="flex-1 h-14 rounded-2xl font-black">Back</Button>
+                      <Button onClick={handlePanelPost} disabled={panelPosting} className="flex-[2] h-14 rounded-2xl font-black">
+                        {panelPosting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Confirm & Post →"}
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

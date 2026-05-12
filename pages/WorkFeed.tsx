@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
   Briefcase, Users, Trophy, Clock, ChevronRight, Loader2,
-  CheckCircle2, Workflow, Sparkles, Filter, LayoutGrid
+  CheckCircle2, Workflow, Sparkles, Filter, LayoutGrid, Search
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -37,34 +37,42 @@ interface Project {
   created_at: string
 }
 
-const DAYS_RECENT = 7
-
-function isRecent(createdAt: string) {
-  return Date.now() - new Date(createdAt).getTime() < DAYS_RECENT * 24 * 60 * 60 * 1000
-}
 
 export default function WorkFeed() {
   const { user } = useAuth()
   const { socket, addNotification } = useSocket()
-  const [tab, setTab] = useState<'browse' | 'recent'>('browse')
+  const [tab, setTab] = useState<'browse' | 'accepted'>('browse')
   const [projects, setProjects] = useState<Project[]>([])
+  const [acceptedProjects, setAcceptedProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [balance, setBalance] = useState(0)
   const [userSkills, setUserSkills] = useState<string[]>([])
   const [filterMatch, setFilterMatch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [projRes, profRes] = await Promise.all([
+      const endpoints = [
         fetch(`${API}/api/projects?status=open`),
-        user ? fetch(`${API}/api/user/${user.id}/profile`) : Promise.resolve(null)
-      ])
+      ]
+      if (user) {
+        endpoints.push(fetch(`${API}/api/user/${user.id}/profile`))
+        endpoints.push(fetch(`${API}/api/user/${user.id}/projects`))
+      }
+      
+      const results = await Promise.all(endpoints)
+      const [projRes, profRes, myProjsRes] = results
+
       if (projRes.ok) setProjects(await projRes.json())
       if (profRes?.ok) {
         const d = await profRes.json()
         setBalance(d.points || 0)
         setUserSkills((d.skills || []).map((s: { name: string }) => s.name.toLowerCase()))
+      }
+      if (myProjsRes?.ok) {
+        const d = await myProjsRes.json()
+        setAcceptedProjects(d.member || [])
       }
     } catch { /* offline */ }
     finally { setLoading(false) }
@@ -83,12 +91,31 @@ export default function WorkFeed() {
     return () => { socket.off('project:posted', onProjectPosted) }
   }, [socket, user?.id, addNotification])
 
-  const recentProjects = projects.filter(p => isRecent(p.created_at))
-  const browseProjects = filterMatch && userSkills.length > 0
-    ? projects.filter(p => p.roles.some(r => !r.filled && r.skills.some(s => userSkills.includes(s.toLowerCase()))))
-    : projects
+  const filterProjects = (list: Project[]) => {
+    let filtered = list;
+    
+    // 1. Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p => 
+        p.title.toLowerCase().includes(query) || 
+        p.description.toLowerCase().includes(query) ||
+        p.roles.some(r => r.name.toLowerCase().includes(query))
+      );
+    }
+    
+    // 2. Skill match filter
+    if (tab === 'browse' && filterMatch && userSkills.length > 0) {
+      filtered = filtered.filter(p => p.roles.some(r => !r.filled && r.skills.some(s => userSkills.includes(s.toLowerCase()))))
+    }
+    
+    return filtered;
+  }
 
-  const displayedProjects = tab === 'recent' ? recentProjects : browseProjects
+  const browseProjects = filterProjects(projects);
+  const acceptedProjectsFiltered = filterProjects(acceptedProjects);
+
+  const displayedProjects = tab === 'accepted' ? acceptedProjectsFiltered : browseProjects
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,17 +123,29 @@ export default function WorkFeed() {
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-10 mt-16">
 
         {/* Page header */}
-        <div className="flex items-start justify-between mb-10 gap-4">
+        <div className="flex items-start justify-between mb-8 gap-4">
           <div>
             <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">Project Composite</p>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-none">Find Your Next Project</h1>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-none">Work Opportunities</h1>
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              Browse open projects and apply for roles that match your skills. Earn credits as a contributor.
+              Find the perfect role. Search by role title, project name, or skills.
             </p>
           </div>
           <div className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/15 text-primary text-sm font-bold shrink-0">
             <Trophy className="h-4 w-4" /> {balance} <span className="font-normal text-xs text-primary/70">credits</span>
           </div>
+        </div>
+
+        {/* Enhanced Search Bar */}
+        <div className="relative mb-8 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <input 
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search by role (e.g. Frontend Developer, UI Designer, Backend)..."
+            className="w-full h-14 pl-12 pr-6 rounded-2xl border border-border bg-card text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all shadow-sm"
+          />
         </div>
 
         {/* Stats strip */}
@@ -132,7 +171,7 @@ export default function WorkFeed() {
           <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border w-fit">
             {([
               { id: 'browse', label: 'All Projects' },
-              { id: 'recent', label: `Recent  •  ${recentProjects.length}` },
+              { id: 'accepted', label: `Accepted  •  ${acceptedProjects.length}` },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -174,11 +213,12 @@ export default function WorkFeed() {
           <div className="text-center py-32 border-2 border-dashed border-border rounded-3xl">
             <Workflow className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-20" />
             <p className="text-sm font-semibold text-muted-foreground">
-              {tab === 'recent' ? "No projects posted this week" :
+              {tab === 'accepted' ? "You haven't been accepted to any projects yet" :
                 filterMatch ? "No projects match your skills" : "No open projects yet"}
             </p>
             <p className="text-xs text-muted-foreground/60 mt-1 mb-5">
-              {filterMatch ? "Try removing the skill filter" : "Check back soon or be the first to post!"}
+              {tab === 'accepted' ? "Apply for roles and wait for the owner's approval!" :
+                filterMatch ? "Try removing the skill filter" : "Check back soon or be the first to post!"}
             </p>
             {filterMatch && (
               <button onClick={() => setFilterMatch(false)} className="text-xs text-primary underline">Show all projects</button>
@@ -193,6 +233,8 @@ export default function WorkFeed() {
                 index={i}
                 currentUserId={user?.id}
                 userSkills={userSkills}
+                isAcceptedTab={tab === 'accepted'}
+                searchQuery={searchQuery}
               />
             ))}
           </div>
@@ -203,9 +245,9 @@ export default function WorkFeed() {
 }
 
 function ProjectCard({
-  project, index, currentUserId, userSkills
+  project, index, currentUserId, userSkills, isAcceptedTab, searchQuery
 }: {
-  project: Project; index: number; currentUserId?: string; userSkills: string[]
+  project: Project; index: number; currentUserId?: string; userSkills: string[]; isAcceptedTab?: boolean; searchQuery: string
 }) {
   const navigate = useNavigate()
   const openRoles = project.roles.filter(r => !r.filled)
@@ -224,7 +266,7 @@ function ProjectCard({
         "rounded-2xl border bg-card flex flex-col hover:shadow-lg transition-all duration-200 cursor-pointer group overflow-hidden",
         hasMatch ? "border-primary/30 ring-1 ring-primary/10" : "border-border"
       )}
-      onClick={() => navigate(`/tasks/project/${project.id}`)}
+      onClick={() => navigate(isAcceptedTab ? `/tasks/project/${project.id}/room` : `/tasks/project/${project.id}`)}
     >
       {/* Card top accent */}
       {hasMatch && <div className="h-0.5 w-full bg-gradient-to-r from-primary/60 to-primary/10" />}
@@ -275,7 +317,15 @@ function ProjectCard({
                     : roleMatch
                       ? <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
                       : <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />}
-                  <span className={cn("font-semibold truncate", role.filled && "line-through opacity-60")}>{role.name}</span>
+                  <span className={cn("font-semibold truncate", role.filled && "line-through opacity-60")}>
+                    {searchQuery.trim() ? (
+                      role.name.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')).map((part, i) => (
+                        part.toLowerCase() === searchQuery.toLowerCase() 
+                          ? <span key={i} className="text-primary bg-primary/10 rounded-sm px-0.5">{part}</span> 
+                          : part
+                      ))
+                    ) : role.name}
+                  </span>
                   <div className="flex gap-1 overflow-hidden">
                     {role.skills.slice(0, 2).map(s => (
                       <span key={s} className={cn(
@@ -318,13 +368,19 @@ function ProjectCard({
               size="sm"
               variant={hasMatch ? "default" : "outline"}
               className="h-7 px-3 rounded-lg text-[11px] gap-1 font-semibold shrink-0"
-              onClick={e => { e.stopPropagation(); navigate(`/tasks/project/${project.id}`) }}
+              onClick={e => { 
+                e.stopPropagation(); 
+                navigate(isAcceptedTab ? `/tasks/project/${project.id}/room` : `/tasks/project/${project.id}`) 
+              }}
             >
-              Apply <ChevronRight className="h-3 w-3" />
+              {isAcceptedTab ? "Open Workspace" : "Apply"} <ChevronRight className="h-3 w-3" />
             </Button>
           )}
           {currentUserId === project.owner_id && (
             <span className="text-[10px] font-semibold text-muted-foreground bg-secondary px-2 py-1 rounded-lg">Your project</span>
+          )}
+          {currentUserId !== project.owner_id && project.members.some(m => m.user_id === currentUserId) && (
+            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">Joined</span>
           )}
         </div>
       </div>

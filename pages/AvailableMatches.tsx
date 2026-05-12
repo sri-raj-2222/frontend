@@ -89,13 +89,14 @@ export default function AvailableMatches() {
     if (requestedTasks.includes(match.task?.id || match.peer.id)) return
 
     const targetId = match.task?.id || match.peer.id
+    const taskId = match.task?.id ?? null
     setRequestedTasks(prev => [...prev, targetId])
 
     try {
       const offeringSkills = match.iOfferWhatTheyNeed.join(', ')
       const notificationMsg = `${user?.name || 'Someone'} wants to exchange ${offeringSkills} for your ${match.task?.title || 'task'}`
 
-      // 0 � Ensure current user exists in `users` table (FK: task_requests.requester_id ? users.id)
+      // 0 – Ensure current user exists in `users` table (FK guard)
       await supabase
         .from('users')
         .upsert(
@@ -103,27 +104,34 @@ export default function AvailableMatches() {
           { onConflict: 'id' }
         )
 
-      // 1 � Check if a request already exists (prevent duplicate 409)
+      // 1 – Check if a request already exists to prevent duplicate 409
+      //     Match on requester_id + owner_id + task_id (null-safe)
       let requestId: string | null = null
-      const { data: existing } = await supabase
+      let existingQuery = supabase
         .from('task_requests')
         .select('id, status')
         .eq('requester_id', user?.id ?? '')
         .eq('owner_id', match.peer.id)
-        .maybeSingle()
+
+      if (taskId) {
+        existingQuery = existingQuery.eq('task_id', taskId)
+      } else {
+        existingQuery = existingQuery.is('task_id', null)
+      }
+
+      const { data: existing } = await existingQuery.maybeSingle()
 
       if (existing) {
-        requestId = existing.id
-        // Request already sent � just notify sender and return
+        // Request already exists – mark UI and inform user
         addNotification(`Request already sent to ${match.peer.name}!`, 'success')
         return
       }
 
-      // 2 � No duplicate ? safely insert
+      // 2 – No duplicate found; safely insert
       const { data: newReq, error: insertErr } = await supabase
         .from('task_requests')
         .insert({
-          task_id: match.task?.id || null,
+          task_id: taskId,
           requester_id: user?.id,
           owner_id: match.peer.id,
           status: 'pending',
@@ -132,15 +140,26 @@ export default function AvailableMatches() {
         .single()
 
       if (insertErr) {
-        // Still got a conflict (race condition) � fetch the existing row
+        // Race-condition conflict (23505 = unique_violation, 409 = HTTP conflict)
         if (insertErr.code === '23505' || (insertErr as { status?: number }).status === 409) {
-          const { data: fallback } = await supabase
+          // Silently recover — fetch the row that already exists
+          let fallbackQuery = supabase
             .from('task_requests')
             .select('id')
             .eq('requester_id', user?.id ?? '')
             .eq('owner_id', match.peer.id)
-            .maybeSingle()
+
+          if (taskId) {
+            fallbackQuery = fallbackQuery.eq('task_id', taskId)
+          } else {
+            fallbackQuery = fallbackQuery.is('task_id', null)
+          }
+
+          const { data: fallback } = await fallbackQuery.maybeSingle()
           requestId = fallback?.id ?? null
+          // Don't re-throw — treat as a successful (already-sent) request
+          addNotification(`Request already sent to ${match.peer.name}!`, 'success')
+          return
         } else {
           throw insertErr
         }
@@ -148,7 +167,7 @@ export default function AvailableMatches() {
         requestId = newReq?.id ?? null
       }
 
-      // 3 � Supabase notification (non-blocking)
+      // 3 – Supabase notification (fire-and-forget, non-blocking)
       if (requestId) {
         supabase
           .from('notifications')
@@ -158,7 +177,7 @@ export default function AvailableMatches() {
             title: 'New Connection Request',
             message: notificationMsg,
             data: {
-              task_id: match.task?.id ?? null,
+              task_id: taskId,
               request_id: requestId,
               requester_id: user?.id,
               requester_name: user?.name,
@@ -171,7 +190,7 @@ export default function AvailableMatches() {
           })
       }
 
-      // 4 � Ping Express server ? emits socket event to owner's room immediately
+      // 4 – Ping Express server to emit socket event to owner's room immediately
       fetch('https://backend-a41z.onrender.com/api/tasks/null/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

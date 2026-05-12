@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Search, Sparkles, RefreshCcw, AlertCircle, Clock, CheckCircle2, MessageSquare, History, User2, Zap
+  Search, Sparkles, RefreshCcw, AlertCircle, Clock, CheckCircle2, MessageSquare, History, User2
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -45,8 +45,6 @@ export default function DirectExchange() {
   const { socket, addNotification } = useSocket()
 
   const [tasks, setTasks] = useState<Task[]>([])
-  const [recommendations, setRecommendations] = useState<Task[]>([])
-  const [recReasons, setRecReasons] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [showIntake, setShowIntake] = useState(false)
 
@@ -56,43 +54,7 @@ export default function DirectExchange() {
   const [myActivity, setMyActivity] = useState<ActivityItem[]>([])
   const [activeActivityTab, setActiveActivityTab] = useState<'pending' | 'accepted' | 'declined'>('pending')
 
-  const getGeminiRecs = useCallback(async (allPossible: Task[], myNeeds: string[], myOffers: string[]) => {
-    try {
-      const geminiPrompt = `
-        Matchmaker AI Pro:
-        User Offerings: ${JSON.stringify(myOffers)}
-        User Needs: ${JSON.stringify(myNeeds)}
 
-        Available Pool:
-        ${JSON.stringify(allPossible.slice(0, 15).map(t => ({
-        id: t.id,
-        name: t.users?.name,
-        offers: t.offering,
-        wants: t.wanting
-      })))}
-
-        Find the 3 BEST MUTUAL handshakes.
-        Return JSON ONLY:
-        { "top_matches": [ { "task_id": "id", "reason": "why" } ] }
-      `
-      const res = await fetch("https://backend-a41z.onrender.com/api/ai/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: geminiPrompt })
-      })
-      if (!res.ok) return
-      const text = await res.text()
-      const jsonMatch = text.match(/\{.*\}/s)
-      if (jsonMatch) {
-        const data = JSON.parse(jsonMatch[0])
-        const recTasks = data.top_matches.map((r: { task_id: string }) => allPossible.find((t) => t.id === r.task_id)).filter(Boolean) as Task[]
-        const reasons: Record<string, string> = {}
-        data.top_matches.forEach((r: { task_id: string; reason: string }) => reasons[r.task_id] = r.reason)
-        setRecommendations(recTasks.slice(0, 3))
-        setRecReasons(reasons)
-      }
-    } catch (err) { console.error("Gemini Error:", err) }
-  }, [])
 
   const loadFeed = useCallback(async (overrideWanting?: string, silent = false) => {
     if (!user?.id) return
@@ -129,24 +91,13 @@ export default function DirectExchange() {
       setTasks(filtered)
 
       // Step 4 � AI picks the best 3 from the already bilateral-filtered pool
-      if (filtered.length > 0) {
-        // their wanting = what I offer | their offering = what I need
-        const myOffers = Array.from(new Set(
-          filtered.flatMap((t: Task) => Array.isArray(t.wanting) ? t.wanting : [t.wanting || ''])
-            .filter(Boolean).map((s: string) => s.toLowerCase())
-        ))
-        const myNeeds = Array.from(new Set(
-          filtered.flatMap((t: Task) => Array.isArray(t.offering) ? t.offering : [t.offering || ''])
-            .filter(Boolean).map((s: string) => s.toLowerCase())
-        ))
-        await getGeminiRecs(filtered, myNeeds, myOffers)
-      }
+
     } catch (err) {
       console.error("Feed Error:", err)
     } finally {
       setLoading(false)
     }
-  }, [user, getGeminiRecs])
+  }, [user])
 
   const loadMyActivity = useCallback(async (silent = false) => {
     if (!user) return
@@ -223,7 +174,6 @@ export default function DirectExchange() {
         socket.on('request:new', () => { loadFeed(undefined, true); loadMyActivity(true); })
         socket.on('task:removed', ({ taskId }) => {
           setTasks(prev => prev.filter(t => t.id !== taskId))
-          setRecommendations(prev => prev.filter(t => t.id !== taskId))
         })
       }
 
@@ -342,7 +292,7 @@ export default function DirectExchange() {
     } catch (err) { console.error(err) }
   }
 
-  const filteredTasks = tasks.filter(t => !recommendations.some(r => r.id === t.id))
+  const filteredTasks = tasks
 
   if (showIntake) return <SkillIntake onComplete={onIntakeComplete} />
 
@@ -479,70 +429,13 @@ export default function DirectExchange() {
           </AnimatePresence>
         </div>
 
-        {/* AI Recommendations */}
-        {recommendations.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center gap-3 mb-8">
-              <Zap className="h-6 w-6 text-amber-500 fill-amber-500" />
-              <h2 className="text-2xl font-black tracking-tight text-amber-600">Smart Peer Recommendations</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {recommendations.map((task) => {
-                const isRequested = requestedTasks.includes(task.id)
-                return (
-                  <motion.div
-                    key={`rec-${task.id}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-8 rounded-[40px] border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/[0.05] to-amber-500/[0.02] flex flex-col relative overflow-hidden group shadow-xl"
-                  >
-                    <div className="absolute top-4 right-4 h-8 w-8 bg-amber-500 text-white rounded-full flex items-center justify-center font-black text-xs shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform">
-                      AI
-                    </div>
-                    <div
-                      onClick={() => navigate(`/profile?id=${task.user_id}`)}
-                      className="flex items-center gap-4 mb-6 cursor-pointer group/user"
-                    >
-                      <div className="h-12 w-12 rounded-2xl bg-amber-500/20 flex items-center justify-center font-black text-amber-700 text-xl group-hover/user:bg-amber-500/30 transition-all">{task.users?.name?.[0]}</div>
-                      <div>
-                        <p className="font-black text-sm text-amber-900 group-hover/user:text-amber-600 transition-colors">{task.users?.name}</p>
-                        <div className="text-[10px] text-amber-600 font-black uppercase flex items-center gap-1 tracking-widest">
-                          Perfect Peer Found
-                        </div>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-black mb-4 text-amber-900">{task.title}</h3>
-                    <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-6 flex gap-3">
-                      <Sparkles className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-[11px] font-bold text-amber-800 italic leading-relaxed">"{recReasons[task.id]}"</p>
-                    </div>
-                    <Button
-                      onClick={() => handleRequest(task)}
-                      disabled={isRequested}
-                      style={{
-                        opacity: isRequested ? 0.5 : 1,
-                        cursor: isRequested ? 'not-allowed' : 'pointer',
-                        background: isRequested ? '#888' : undefined
-                      }}
-                      className={cn(
-                        "w-full h-14 rounded-2xl font-black shadow-xl shadow-amber-600/20 disabled:opacity-50",
-                        isRequested ? "" : "bg-amber-600 hover:bg-amber-700 text-white"
-                      )}
-                    >
-                      {isRequested ? "Request Sent" : "Connect with this Peer"}
-                    </Button>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+
 
         <h2 className="text-2xl font-black tracking-tight mb-8">Available Matches</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {loading ? (
             <div className="col-span-full py-20 text-center font-black text-muted-foreground animate-pulse">Deep scanning profiles for handshakes...</div>
-          ) : filteredTasks.length === 0 && recommendations.length === 0 ? (
+          ) : filteredTasks.length === 0 ? (
             <div className="col-span-full py-32 text-center rounded-[48px] border-2 border-dashed border-border bg-secondary/10"><AlertCircle className="h-12 w-12 mx-auto mb-6 opacity-20" /><h3 className="text-xl font-black mb-2">No direct matches yet</h3><p className="text-muted-foreground font-medium">We're searching for someone who offers what you need.</p></div>
           ) : (
             filteredTasks.map((task) => {

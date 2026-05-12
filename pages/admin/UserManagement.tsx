@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Search, ShieldCheck, Star, AlertTriangle, Eye, Ban,
+  ShieldCheck, Star, AlertTriangle, Eye, Ban,
   CheckCircle2, XCircle, Clock, MessageSquare, Briefcase,
   User, X, RefreshCw, Flag, Activity, ThumbsUp, ThumbsDown,
   Loader2, UserCheck, UserX, ChevronLeft, ChevronRight,
@@ -463,11 +463,11 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-export default function UserManagement() {
+export default function UserManagement({ globalSearch = "" }: { globalSearch?: string }) {
   const [users, setUsers] = useState<EnrichedUser[]>([])
   const [stats, setStats] = useState({ total: 0, active: 0, blocked: 0, verified: 0, suspicious: 0 })
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState("")
+  const [search] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [verifiedFilter, setVerifiedFilter] = useState("all")
@@ -508,8 +508,9 @@ export default function UserManagement() {
   // Client-side filter + sort
   const filtered = useMemo(() => {
     let r = [...users]
-    if (search) {
-      const q = search.toLowerCase()
+    const activeSearch = globalSearch || search
+    if (activeSearch) {
+      const q = activeSearch.toLowerCase()
       r = r.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.skills.some(s => s.name.toLowerCase().includes(q)))
     }
     if (roleFilter !== "all") r = r.filter(u => u.role === roleFilter)
@@ -626,13 +627,6 @@ export default function UserManagement() {
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-xl px-3 py-2 flex-1 min-w-48">
-          <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search name, email, or skill…"
-            className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0" />
-          {search && <button onClick={() => setSearch("")} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>}
-        </div>
 
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />

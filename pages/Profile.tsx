@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
 import {
-  Star, Edit3, MapPin, Award, Trophy, Briefcase, Zap, Search, Plus, Trash2, X, Flag, CheckCircle2, MessageSquare, Link2, Globe, ExternalLink
+  Star, Edit3, MapPin, Award, Trophy, Briefcase, Zap, Search, Plus, Trash2, X, Flag, CheckCircle2, MessageSquare, Link2, Globe, ExternalLink, Sparkles, TrendingUp, ThumbsUp, AlertCircle, RefreshCw
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { Review } from "@/types"
+
+interface AiEvaluation {
+  avg_score: number
+  sentiment: 'Excellent' | 'Great' | 'Good' | 'Mixed' | 'Poor'
+  summary: string
+  highlights: string[]
+  improvement: string | null
+}
 
 interface ProfileData {
   id: string
@@ -58,6 +66,10 @@ export default function Profile() {
   const isOwnProfile = !searchParams.get("id") || searchParams.get("id") === authUser?.id
 
   const [reviews, setReviews] = useState<Review[]>([])
+  const [reviewCount, setReviewCount] = useState(0)
+  const [serverAvgRating, setServerAvgRating] = useState<number | null>(null)
+  const [aiEvaluation, setAiEvaluation] = useState<AiEvaluation | null>(null)
+  const [refreshingAi, setRefreshingAi] = useState(false)
   const [flagInfo, setFlagInfo] = useState<{ level: number; color: string; label: string } | null>(null)
 
   const loadProfile = useCallback(async (silent = false) => {
@@ -130,7 +142,17 @@ export default function Profile() {
       try {
         const reviewsRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
         const reviewsData = await reviewsRes.json()
-        if (Array.isArray(reviewsData)) setReviews(reviewsData)
+        // New API shape: { reviews, avgRating, reviewCount, aiEvaluation }
+        if (reviewsData && typeof reviewsData === 'object' && !Array.isArray(reviewsData)) {
+          setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
+          setReviewCount(reviewsData.reviewCount ?? 0)
+          setServerAvgRating(reviewsData.avgRating ?? null)
+          setAiEvaluation(reviewsData.aiEvaluation ?? null)
+        } else if (Array.isArray(reviewsData)) {
+          // backward-compat fallback
+          setReviews(reviewsData)
+          setReviewCount(reviewsData.length)
+        }
       } catch { /* server may be offline */ }
 
       let skillsFetched = false
@@ -204,9 +226,31 @@ export default function Profile() {
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : '—'
 
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : profile?.rating ? profile.rating.toFixed(1) : '—'
+  const avgRating = serverAvgRating != null
+    ? serverAvgRating.toFixed(1)
+    : reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+      : profile?.rating ? profile.rating.toFixed(1) : '—'
+
+  const sentimentColor: Record<string, string> = {
+    Excellent: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30',
+    Great:     'text-teal-600   bg-teal-50   border-teal-200   dark:bg-teal-500/10   dark:border-teal-500/30',
+    Good:      'text-blue-600   bg-blue-50   border-blue-200   dark:bg-blue-500/10   dark:border-blue-500/30',
+    Mixed:     'text-amber-600  bg-amber-50  border-amber-200  dark:bg-amber-500/10  dark:border-amber-500/30',
+    Poor:      'text-red-600    bg-red-50    border-red-200    dark:bg-red-500/10    dark:border-red-500/30',
+  }
+
+  const handleRefreshAi = async () => {
+    if (!viewUserId || refreshingAi) return
+    setRefreshingAi(true)
+    try {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews?refresh=1`)
+      const data = await res.json()
+      if (data.aiEvaluation) setAiEvaluation(data.aiEvaluation)
+      if (data.avgRating != null) setServerAvgRating(data.avgRating)
+    } catch { /* ignore */ }
+    finally { setRefreshingAi(false) }
+  }
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center">
@@ -526,77 +570,165 @@ export default function Profile() {
           transition={{ delay: 0.2 }}
           className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden"
         >
+          {/* Section header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-base font-bold">Reviews</h2>
-            {reviews.length > 0 && (
-              <span className="ml-auto text-xs text-muted-foreground font-medium">
-                {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+            <h2 className="text-base font-bold">Reviews &amp; Ratings</h2>
+            {reviewCount > 0 && (
+              <span className="text-xs text-muted-foreground font-medium">
+                {reviewCount} review{reviewCount !== 1 ? 's' : ''}
               </span>
+            )}
+            {reviewCount > 0 && (
+              <button
+                onClick={handleRefreshAi}
+                disabled={refreshingAi}
+                title="Re-evaluate with Gemini AI"
+                className="ml-auto p-1.5 rounded-lg hover:bg-muted/60 transition-colors text-muted-foreground hover:text-primary"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", refreshingAi && "animate-spin")} />
+              </button>
             )}
           </div>
 
-          {reviews.length === 0 ? (
+          {reviewCount === 0 ? (
             <div className="py-14 text-center">
               <Star className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
               <p className="text-sm font-medium text-muted-foreground">No reviews yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Complete an exchange to receive feedback</p>
             </div>
           ) : (
-            <ul className="divide-y divide-border">
-              {reviews.map((rev, i) => (
-                <li key={i} className="px-6 py-5 hover:bg-muted/30 transition-colors">
-                  <div className="flex gap-4">
-                    {/* Avatar */}
-                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 mt-0.5">
-                      {(rev.reviewer_name || rev.reviewer_id || 'P')[0].toUpperCase()}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      {/* Reviewer name + date */}
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-sm font-semibold">{rev.reviewer_name || 'Peer Reviewer'}</span>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {Array.from({ length: 5 }).map((_, star) => (
-                            <Star
-                              key={star}
-                              className={cn(
-                                "h-3 w-3",
-                                star < rev.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"
-                              )}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Comment */}
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-2">
-                        {rev.comment || "Great exchange!"}
-                      </p>
-
-                      {/* Tags + exchange label */}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {rev.skill_level && (
-                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/8 text-primary border border-primary/10">
-                            {rev.skill_level}
-                          </span>
-                        )}
-                        {rev.tags && rev.tags.map((tag: string) => (
-                          <span key={tag} className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
-                            {tag}
-                          </span>
+            <div>
+              {/* ── AI Evaluation Summary Card ─────────────────────────── */}
+              <div className="m-5 rounded-2xl border border-border/70 bg-gradient-to-br from-background to-muted/30 p-5 shadow-sm">
+                {/* Header row: avg score + sentiment badge */}
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    {/* Big avg score */}
+                    <div className="flex flex-col items-center justify-center h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 shrink-0">
+                      <span className="text-2xl font-black text-amber-600 leading-none">{avgRating}</span>
+                      <div className="flex gap-0.5 mt-1">
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <Star key={s} className={cn("h-2 w-2",
+                            s < Math.round(parseFloat(avgRating as string))
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-amber-200 dark:text-amber-800"
+                          )} />
                         ))}
-                        {rev.task_title && (
-                          <span className="text-[10px] text-muted-foreground/50 ml-auto">
-                            {rev.task_title}
-                          </span>
-                        )}
                       </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-primary">Gemini AI Evaluation</span>
+                      </div>
+                      {aiEvaluation?.sentiment && (
+                        <span className={cn(
+                          "inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-lg border",
+                          sentimentColor[aiEvaluation.sentiment] || sentimentColor['Good']
+                        )}>
+                          {aiEvaluation.sentiment}
+                        </span>
+                      )}
+                      {!aiEvaluation && (
+                        <span className="text-xs text-muted-foreground italic">Avg of {reviewCount} review{reviewCount !== 1 ? 's' : ''}</span>
+                      )}
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+
+                {/* AI Summary text */}
+                {aiEvaluation?.summary && (
+                  <p className="text-sm text-foreground/80 leading-relaxed mb-4 border-l-2 border-primary/30 pl-3">
+                    {aiEvaluation.summary}
+                  </p>
+                )}
+
+                {/* Highlights */}
+                {aiEvaluation?.highlights && aiEvaluation.highlights.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <ThumbsUp className="h-3 w-3 text-emerald-500" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Peer Strengths</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {aiEvaluation.highlights.map((h, i) => (
+                        <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20">
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Improvement tip */}
+                {aiEvaluation?.improvement && (
+                  <div className="flex items-start gap-2 mt-2 p-3 rounded-xl bg-amber-50/60 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/15">
+                    <TrendingUp className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                      <span className="font-bold">Growth tip: </span>{aiEvaluation.improvement}
+                    </p>
+                  </div>
+                )}
+
+                {/* No aiEvaluation yet */}
+                {!aiEvaluation && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    AI evaluation is generating in the background. Refresh to see it.
+                  </div>
+                )}
+              </div>
+
+              {/* ── Individual Review Cards ─────────────────────────────── */}
+              <div className="px-5 pb-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <MessageSquare className="h-3 w-3" /> All {reviewCount} Peer Review{reviewCount !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <ul className="divide-y divide-border border-t border-border">
+                {reviews.map((rev, i) => (
+                  <li key={i} className="px-6 py-4 hover:bg-muted/20 transition-colors">
+                    <div className="flex gap-4">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                        {(rev.reviewer_name || rev.reviewer_id || 'P')[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-sm font-semibold">{rev.reviewer_name || 'Peer Reviewer'}</span>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {Array.from({ length: 5 }).map((_, star) => (
+                              <Star key={star} className={cn("h-3 w-3",
+                                star < rev.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"
+                              )} />
+                            ))}
+                            <span className="ml-1 text-xs font-bold text-amber-600">{rev.rating}/5</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-1.5">
+                          {rev.comment || "Great exchange!"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {rev.skill_level && (
+                            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/8 text-primary border border-primary/10">
+                              {rev.skill_level}
+                            </span>
+                          )}
+                          {rev.tags && rev.tags.map((tag: string) => (
+                            <span key={tag} className="text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
+                              {tag}
+                            </span>
+                          ))}
+                          {rev.task_title && (
+                            <span className="text-[10px] text-muted-foreground/40 ml-auto italic">{rev.task_title}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </motion.div>
 

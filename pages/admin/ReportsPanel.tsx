@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Flag, Search, Filter, RefreshCw, X,
+  Flag, Filter, RefreshCw, X,
   AlertTriangle, CheckCircle2, Clock, Eye, Loader2,
   MessageSquare, ShieldX, ShieldAlert, ShieldCheck,
   ArrowLeft, Calendar, ExternalLink,
@@ -477,13 +477,13 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
 }
 
 // ── Main Reports Panel ────────────────────────────────────────────────────────
-export default function ReportsPanel() {
+export default function ReportsPanel({ globalSearch = "" }: { globalSearch?: string }) {
   const [reports, setReports] = useState<ReportEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState("")
   const [reasonFilter, setReasonFilter] = useState("")
-  const [search, setSearch] = useState("")
+  const [search] = useState("")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
   const [showFilters, setShowFilters] = useState(false)
@@ -509,8 +509,9 @@ export default function ReportsPanel() {
   useEffect(() => { loadReports() }, [loadReports])
 
   const filtered = reports.filter(r => {
-    if (!search) return true
-    const q = search.toLowerCase()
+    const activeSearch = globalSearch || search
+    if (!activeSearch) return true
+    const q = activeSearch.toLowerCase()
     return (
       r.reporter?.name?.toLowerCase().includes(q) ||
       r.reported?.name?.toLowerCase().includes(q) ||
@@ -556,14 +557,6 @@ export default function ReportsPanel() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-xl px-3 py-2">
-        <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by reporter, reported user, or reason…"
-          className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1" />
-        {search && <button onClick={() => setSearch("")}><X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></button>}
-      </div>
 
       {/* Filters */}
       <AnimatePresence>

@@ -335,7 +335,7 @@ export function Navbar() {
 
 
   return (
-    <nav className="w-full border-b border-slim border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="w-full border-b border-primary/5 bg-background/70 backdrop-blur-xl sticky top-0 z-50">
       <div className="w-full flex h-16 items-center justify-between px-6 max-w-7xl mx-auto">
         {/* Logo */}
         <div className="flex items-center gap-8">

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Clock, ChevronLeft, ChevronRight, Users, Send, CheckCircle2, AlertCircle,
   Sparkles, Plus, ArrowLeft, BookOpen, Zap, Award, XCircle,
-  Play, Square, Eye, Star, Edit3, Loader2, Calendar, MessageSquare
+  Play, Eye, Star, Edit3, Loader2, Calendar, MessageSquare
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -232,6 +232,9 @@ export default function BroadcastClass() {
   const [attendances, setAttendances] = useState<Record<string, boolean>>({})
   const [success, setSuccess] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
+  
+
+
 
   const loadMyClasses = useCallback(async () => {
     if (!user?.id) return
@@ -674,11 +677,11 @@ export default function BroadcastClass() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="font-black text-lg">Mark Attendance</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">Uncheck learners who didn't show. Credits only charged for attended.</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Confirm who attended. Only attendees contribute to your earnings.</p>
                     </div>
                     <Button onClick={() => handleEnd(selected.id)} disabled={actionLoading}
                       className="h-12 px-8 rounded-2xl bg-foreground text-background font-black shadow-none hover:scale-[1.02] transition-all gap-2">
-                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Square className="h-4 w-4" /> End Session</>}
+                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><CheckCircle2 className="h-4 w-4" /> Completed</>}
                     </Button>
                   </div>
                   {enrollments.length === 0
@@ -700,7 +703,7 @@ export default function BroadcastClass() {
                               </p>
                             </div>
                             {attendances[e.user_id] !== false && selected.reward_credits > 0 && (
-                              <span className="text-xs font-black text-emerald-600">+{selected.reward_credits} cr</span>
+                              <span className="text-xs font-black text-emerald-600">+{selected.reward_credits} cr to you</span>
                             )}
                           </div>
                         ))}
@@ -725,11 +728,11 @@ export default function BroadcastClass() {
                 <div className="p-8 rounded-[32px] bg-green-50 border border-green-200 text-center">
                   <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
                   <h3 className="font-black text-xl mb-1 text-green-700">Session Complete</h3>
-                  <p className="text-sm text-green-600 font-medium mb-4">Credits awarded to all attendees.</p>
+                  <p className="text-sm text-green-600 font-medium mb-4">The session has ended and credits have been transferred.</p>
                   {selected.reward_credits > 0 && (
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-black text-sm">
                       <Award className="h-4 w-4" />
-                      {totalAwarded} credits awarded ({attendedCount} � {selected.reward_credits} cr each)
+                      {totalAwarded} credits added to your balance ({attendedCount} attendees)
                     </div>
                   )}
                 </div>

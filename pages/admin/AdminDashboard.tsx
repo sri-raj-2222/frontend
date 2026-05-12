@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import {
   LayoutDashboard, Users, Briefcase, CreditCard, Flag,
-  BookOpen, Settings, LogOut, Bell, Search, Menu, X,
-  Shield, Loader2, RefreshCw, ChevronDown
+  BookOpen, Settings, LogOut, Bell,
+  Loader2, RefreshCw, ChevronDown
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import UserManagement from "./UserManagement"
@@ -44,31 +44,30 @@ function Empty({ label }: { label: string }) {
   )
 }
 
-// ── Sidebar items ─────────────────────────────────────────────────────────────
-const sidebarItems = [
+// ── Nav items ─────────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Overview", id: "overview" },
   { icon: Users, label: "Users", id: "users" },
   { icon: Briefcase, label: "Projects", id: "projects" },
   { icon: CreditCard, label: "Payments", id: "payments" },
   { icon: Flag, label: "Reports", id: "reports" },
-  { icon: BookOpen, label: "Sessions", id: "sessions" },
   { icon: Settings, label: "Settings", id: "settings" },
 ]
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [sidebar, setSidebar] = useState(true)
   const [active, setActive] = useState("overview")
   const [loading, setLoading] = useState(true)
   const [refresh, setRefresh] = useState(0)
+  const [globalSearch] = useState("")
 
   // ── Real data states ───────────────────────────────────────────────────────
   const [stats, setStats] = useState<Record<string, number>>({})
   const [users, setUsers] = useState<Record<string, unknown>[]>([])
   const [tasks, setTasks] = useState<Record<string, unknown>[]>([])
-  const [sessions, setSessions] = useState<Record<string, unknown>[]>([])
-  const [, setDisputes] = useState<Record<string, unknown>[]>([])
+
+  const [disputes, setDisputes] = useState<Record<string, unknown>[]>([])
   const [reviews, setReviews] = useState<Record<string, unknown>[]>([])
 
   const adminSession = (() => {
@@ -87,17 +86,16 @@ export default function AdminDashboard() {
       setLoading(true)
       try {
         // Express endpoints
-        const [statsR, tasksR, sessR, dispR, revR] = await Promise.allSettled([
+        const [statsR, tasksR, dispR, revR] = await Promise.allSettled([
           fetch(`${API}/api/admin/data/stats`).then(r => r.json()),
           fetch(`${API}/api/admin/data/tasks`).then(r => r.json()),
-          fetch(`${API}/api/admin/data/sessions`).then(r => r.json()),
           fetch(`${API}/api/admin/data/disputes`).then(r => r.json()),
           fetch(`${API}/api/admin/data/reviews`).then(r => r.json()),
         ])
 
         if (statsR.status === "fulfilled") setStats(statsR.value)
         if (tasksR.status === "fulfilled") setTasks(Array.isArray(tasksR.value) ? tasksR.value : [])
-        if (sessR.status === "fulfilled") setSessions(Array.isArray(sessR.value) ? sessR.value : [])
+
         if (dispR.status === "fulfilled") setDisputes(Array.isArray(dispR.value) ? dispR.value : [])
         if (revR.status === "fulfilled") setReviews(Array.isArray(revR.value) ? revR.value : [])
 
@@ -119,18 +117,19 @@ export default function AdminDashboard() {
     { label: "Total Users", value: users.length, icon: Users },
     { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: Briefcase },
     { label: "Active Tasks", value: stats.activeTasks ?? 0, icon: Briefcase },
-    { label: "Live Sessions", value: stats.activeRooms ?? 0, icon: BookOpen },
     { label: "Reports", value: stats.totalDisputes ?? 0, icon: Flag },
     { label: "Reviews", value: stats.totalReviews ?? 0, icon: CreditCard },
   ]
 
   // ── Table renderer ─────────────────────────────────────────────────────────
   const renderTable = () => {
+    const q = globalSearch.toLowerCase()
+
     if (active === "users") return (
       <Table
         title="All Users"
         headers={["Name", "Email", "Role", "Last Updated"]}
-        rows={users.map(u => [
+        rows={users.filter(u => (u.name as string)?.toLowerCase().includes(q) || (u.email as string)?.toLowerCase().includes(q)).map(u => [
           (u.name as string) || "—",
           (u.email as string) || "—",
           <Badge v={(u.role as string) || "user"} />,
@@ -144,7 +143,7 @@ export default function AdminDashboard() {
       <Table
         title="All Tasks / Projects"
         headers={["Title", "Type", "Offering", "Wanting", "Status", "Posted By"]}
-        rows={tasks.map(t => [
+        rows={tasks.filter(t => (t.title as string)?.toLowerCase().includes(q) || (t.user_name as string)?.toLowerCase().includes(q)).map(t => [
           (t.title as string) || "—",
           (t.type as string) || "—",
           (t.offering as string) || "—",
@@ -156,28 +155,14 @@ export default function AdminDashboard() {
       />
     )
 
-    if (active === "sessions") return (
-      <Table
-        title="All Sessions"
-        headers={["Session", "Participants", "Messages", "Status", "Created"]}
-        rows={sessions.map(s => [
-          (s.task_title as string) || (s.id as string),
-          ((s.participants as any[])?.length ?? 0),
-          (s.message_count as number) ?? 0,
-          <Badge v={s.status as string} />,
-          s.created_at ? new Date(s.created_at as string).toLocaleDateString() : "—",
-        ]) as (string | number | React.ReactNode)[][]}
-        empty="sessions"
-      />
-    )
 
-    if (active === "reports") return <ReportsPanel />
+    if (active === "reports") return <ReportsPanel globalSearch={globalSearch} />
 
     if (active === "payments") return (
       <Table
         title="Reviews & Payments"
         headers={["Reviewer", "Reviewed", "Rating", "Comment", "Date"]}
-        rows={reviews.map(r => [
+        rows={reviews.filter(r => (r.reviewer as string)?.toLowerCase().includes(q) || (r.reviewed as string)?.toLowerCase().includes(q) || (r.comment as string)?.toLowerCase().includes(q)).map(r => [
           r.reviewer as string,
           r.reviewed as string,
           r.rating ? `${"★".repeat(r.rating as number)}${"☆".repeat(5 - (r.rating as number))}` : "—",
@@ -206,206 +191,112 @@ export default function AdminDashboard() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const pageTitle = sidebarItems.find(i => i.id === active)?.label ?? 'Overview'
+
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
+    <div className="min-h-screen bg-background text-foreground">
 
-      {/* ════════════════════════════════════════════
-          SIDEBAR
-      ════════════════════════════════════════════ */}
-      <motion.aside
-        initial={false}
-        animate={{ width: sidebar ? 220 : 0, opacity: sidebar ? 1 : 0 }}
-        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-        className="shrink-0 border-r border-border bg-card flex flex-col sticky top-0 h-screen overflow-hidden z-40"
-      >
-        <div className="w-[220px]">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5 px-5 h-16 border-b border-border">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-              <Shield className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-foreground leading-tight">ShareSphere</p>
-              <p className="text-[10px] font-semibold text-primary uppercase tracking-widest leading-tight">Admin</p>
-            </div>
-          </div>
+      {/* ════════════════════ TOP NAVBAR — single row ════════════════════ */}
+      <header className="sticky top-0 z-40 h-16 border-b border-border bg-background/95 backdrop-blur-sm flex items-center gap-4 px-6">
 
-          {/* Nav */}
-          <nav className="px-3 py-4 space-y-0.5">
-            {sidebarItems.map(item => (
-              <button
-                key={item.id}
-                onClick={() => setActive(item.id)}
-                className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group"
-              >
-                {/* Sliding active pill */}
-                {active === item.id && (
-                  <motion.div
-                    layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-xl bg-primary/10"
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                  />
-                )}
-                <item.icon className={`relative h-4 w-4 shrink-0 transition-colors ${active === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                  }`} />
-                <span className={`relative transition-colors ${active === item.id ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'
-                  }`}>{item.label}</span>
-                {/* Active left stripe */}
-                {active === item.id && (
-                  <motion.div
-                    layoutId="sidebar-stripe"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full bg-primary"
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                  />
-                )}
-              </button>
-            ))}
-          </nav>
-
-          {/* Bottom: admin info */}
-          <div className="absolute bottom-0 left-0 right-0 border-t border-border p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
-                {adminName[0]?.toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-foreground truncate">{adminName}</p>
-                <p className="text-[10px] text-muted-foreground truncate capitalize">{adminSession.role || 'admin'}</p>
-              </div>
-              <button onClick={handleLogout}
-                title="Sign out"
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            </div>
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <div className="hidden sm:block">
+            <p className="text-sm font-bold text-foreground leading-tight">ShareSphere</p>
+            <p className="text-[10px] font-semibold text-primary uppercase tracking-widest leading-tight">Admin</p>
           </div>
         </div>
-      </motion.aside>
 
-      {/* ════════════════════════════════════════════
-          MAIN COLUMN
-      ════════════════════════════════════════════ */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        {/* Divider */}
+        <div className="h-5 w-px bg-border mx-1 shrink-0" />
 
-        {/* ── Top bar ─────────────────────────────────────────── */}
-        <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/95 backdrop-blur-sm flex items-center gap-4 px-6">
-
-          {/* Hamburger */}
-          <motion.button
-            onClick={() => setSidebar(s => !s)}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {sidebar ? (
-                <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <X className="h-4 w-4" />
-                </motion.span>
-              ) : (
-                <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <Menu className="h-4 w-4" />
-                </motion.span>
+        {/* Nav tabs — fills the middle */}
+        <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto">
+          {NAV_ITEMS.map(item => (
+            <button key={item.id} onClick={() => setActive(item.id)}
+              className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap group"
+            >
+              {active === item.id && (
+                <motion.div layoutId="nav-pill"
+                  className="absolute inset-0 rounded-xl bg-primary/10"
+                  transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                />
               )}
-            </AnimatePresence>
+              <item.icon className={`relative h-3.5 w-3.5 shrink-0 transition-colors ${active === item.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
+              <span className={`relative transition-colors ${active === item.id ? 'text-primary font-semibold' : 'text-muted-foreground group-hover:text-foreground'}`}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        {/* Right actions */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <motion.button whileTap={{ rotate: 180 }} transition={{ duration: 0.35 }}
+            onClick={() => setRefresh(r => r + 1)}
+            className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Refresh">
+            <RefreshCw className="h-4 w-4" />
           </motion.button>
 
-          {/* Page title */}
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={pageTitle}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="text-base font-bold text-foreground"
-            >
-              {pageTitle}
-            </motion.h1>
-          </AnimatePresence>
+          <button 
+            onClick={() => setActive("reports")}
+            className="relative p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title={disputes.length > 0 ? `${disputes.length} reports pending` : "No new reports"}
+          >
+            <Bell className="h-4 w-4" />
+            {disputes.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+              </span>
+            )}
+          </button>
 
-          {/* Search */}
-          <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2 flex-1 max-w-xs ml-4">
-            <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <input
-              placeholder="Search anything…"
-              className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0"
-            />
-          </div>
+          <div className="h-5 w-px bg-border mx-1" />
 
-          <div className="flex items-center gap-2 ml-auto">
-            {/* Refresh */}
-            <motion.button
-              whileTap={{ rotate: 180 }}
-              transition={{ duration: 0.35 }}
-              onClick={() => setRefresh(r => r + 1)}
-              className="p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-              title="Refresh"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </motion.button>
-
-            {/* Bell */}
-            <button className="relative p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-              <Bell className="h-4 w-4" />
+          {/* Profile dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button onClick={() => setProfileOpen(o => !o)}
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-secondary transition-colors">
+              <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
+                {adminName[0]?.toUpperCase()}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-semibold text-foreground leading-tight">{adminName}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight capitalize">{adminSession.role || 'Admin'}</p>
+              </div>
+              <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Divider */}
-            <div className="h-6 w-px bg-border mx-1" />
-
-            {/* Profile dropdown */}
-            <div className="relative" ref={profileRef}>
-              <button
-                onClick={() => setProfileOpen(o => !o)}
-                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-secondary transition-colors"
-              >
-                <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-                  {adminName[0]?.toUpperCase()}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-xs font-semibold text-foreground leading-tight">{adminName}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight capitalize">{adminSession.role || 'Admin'}</p>
-                </div>
-                <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {profileOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                    transition={{ duration: 0.15, ease: 'easeOut' }}
-                    className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50"
-                  >
-                    <div className="px-4 py-3 border-b border-border">
-                      <p className="text-sm font-semibold text-foreground">{adminName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{adminSession.email}</p>
-                    </div>
-                    <div className="p-2">
-                      <button
-                        onClick={() => { setActive('settings'); setProfileOpen(false) }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                      >
-                        <Settings className="h-4 w-4" /> Settings
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <LogOut className="h-4 w-4" /> Sign out
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div initial={{ opacity: 0, y: 6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.97 }} transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-52 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-semibold text-foreground">{adminName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{adminSession.email}</p>
+                  </div>
+                  <div className="p-2">
+                    <button onClick={() => { setActive('settings'); setProfileOpen(false) }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                      <Settings className="h-4 w-4" /> Settings
+                    </button>
+                    <button onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-destructive hover:bg-destructive/10 transition-colors">
+                      <LogOut className="h-4 w-4" /> Sign out
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-6">
+      {/* ════════════ MAIN CONTENT ════════════ */}
+      <main className="p-6 max-w-screen-2xl mx-auto">
+        <div>
             {loading ? (
               <div className="flex items-center justify-center py-24 gap-3 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -423,6 +314,31 @@ export default function AdminDashboard() {
                         <h1 className="text-2xl font-bold text-foreground">Platform Overview</h1>
                         <p className="text-sm text-muted-foreground mt-1">Welcome back, {adminName}</p>
                       </div>
+
+                      {/* Action Required Section */}
+                      {disputes.length > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="mb-8 p-5 rounded-2xl bg-destructive/5 border border-destructive/20 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                              <Flag className="h-5 w-5 text-destructive" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-foreground">Action Required: {disputes.length} Pending Reports</p>
+                              <p className="text-xs text-muted-foreground">New reports have been submitted and require your review.</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => setActive("reports")}
+                            className="px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-xs font-bold hover:bg-destructive/90 transition-colors"
+                          >
+                            Review Now
+                          </button>
+                        </motion.div>
+                      )}
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
                         {cards.map((c, i) => (
@@ -446,7 +362,6 @@ export default function AdminDashboard() {
                           { id: "projects", label: "Tasks", Icon: Briefcase },
                           { id: "payments", label: "Reviews", Icon: CreditCard },
                           { id: "reports", label: "Reports", Icon: Flag },
-                          { id: "sessions", label: "Sessions", Icon: BookOpen },
                         ].map(({ id, label, Icon }) => (
                           <motion.button key={id} whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}
                             onClick={() => setActive(id)}
@@ -463,7 +378,7 @@ export default function AdminDashboard() {
                   )}
 
                   {/* User Management (rich) */}
-                  {active === "users" && <UserManagement />}
+                  {active === "users" && <UserManagement globalSearch={globalSearch} />}
 
                   {/* Other data tables */}
                   {active !== "overview" && active !== "settings" && active !== "users" && renderTable()}
@@ -499,9 +414,8 @@ export default function AdminDashboard() {
                 </motion.div>
               </AnimatePresence>
             )}
-          </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }
