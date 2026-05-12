@@ -34,7 +34,7 @@ export interface Notification {
   type: string;
   reference_id: string;
   task_id: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -49,6 +49,9 @@ export interface Message {
     name: string;
     avatar_url: string | null;
   };
+  message?: string;
+  senderId?: string;
+  senderName?: string;
 }
 
 export interface Room {
@@ -62,6 +65,11 @@ export interface Room {
   created_at: string;
   workspace_notes?: string;
   task_title?: string;
+  title?: string;
+  is_supabase?: boolean;
+  isSb?: boolean;
+  connected?: boolean;
+  connection_clicks?: string[];
   task?: {
     title: string;
     description: string;

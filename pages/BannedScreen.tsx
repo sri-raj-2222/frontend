@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { ShieldX, Clock, Mail, LogOut } from "lucide-react"
 
@@ -15,7 +16,8 @@ function fmtDate(d: string) {
 }
 
 function TimeLeft({ expiresAt }: { expiresAt: string }) {
-  const ms = new Date(expiresAt).getTime() - Date.now()
+  const [now] = useState(Date.now)
+  const ms = new Date(expiresAt).getTime() - now
   if (ms <= 0) return <span>shortly</span>
   const days = Math.floor(ms / (1000 * 60 * 60 * 24))
   const hrs  = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))

@@ -65,11 +65,11 @@ export default function AdminDashboard() {
 
   // ── Real data states ───────────────────────────────────────────────────────
   const [stats, setStats] = useState<Record<string, number>>({})
-  const [users, setUsers] = useState<any[]>([])
-  const [tasks, setTasks] = useState<any[]>([])
-  const [sessions, setSessions] = useState<any[]>([])
-  const [_disputes, setDisputes] = useState<any[]>([])
-  const [reviews, setReviews] = useState<any[]>([])
+  const [users, setUsers] = useState<Record<string, unknown>[]>([])
+  const [tasks, setTasks] = useState<Record<string, unknown>[]>([])
+  const [sessions, setSessions] = useState<Record<string, unknown>[]>([])
+  const [, setDisputes] = useState<Record<string, unknown>[]>([])
+  const [reviews, setReviews] = useState<Record<string, unknown>[]>([])
 
   const adminSession = (() => {
     try { return JSON.parse(localStorage.getItem("admin_session") || "{}") } catch { return {} }

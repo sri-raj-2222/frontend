@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -62,7 +62,7 @@ export default function Onboarding() {
     if (!user?.id) return
     try {
       // 1. Update Profile
-      const profRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/profile`, {
+      const profRes = await fetch(`http://localhost:5000/api/user/${user.id}/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -82,7 +82,7 @@ export default function Onboarding() {
         // We'll just add them for now. In a real app we might clear old ones first.
         // For simplicity during onboarding, we just POST them.
         await Promise.all(formData.skills.map(skill =>
-          fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/skills`, {
+          fetch(`http://localhost:5000/api/user/${user.id}/skills`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -274,7 +274,7 @@ export default function Onboarding() {
                         <FileText className="w-6 h-6 text-primary" />
                       </div>
                       <p className="font-medium">{formData.resume.file.name}</p>
-                      <p className="text-xs text-muted-foreground">{(formData.resume.file.size / (1024 * 1024)).toFixed(2)} MB • Click to replace</p>
+                      <p className="text-xs text-muted-foreground">{(formData.resume.file.size / (1024 * 1024)).toFixed(2)} MB � Click to replace</p>
                     </div>
                   ) : (
                     <div className="space-y-2">

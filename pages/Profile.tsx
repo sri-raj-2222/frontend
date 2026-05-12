@@ -109,7 +109,7 @@ export default function Profile() {
       }
 
       try {
-        const aiRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/profile`)
+        const aiRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/profile`)
         const aiData = await aiRes.json()
         if (aiData?.id) {
           setProfile(prev => prev ? {
@@ -128,14 +128,14 @@ export default function Profile() {
       } catch { /* server may be offline */ }
 
       try {
-        const reviewsRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
+        const reviewsRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/reviews`)
         const reviewsData = await reviewsRes.json()
         if (Array.isArray(reviewsData)) setReviews(reviewsData)
       } catch { /* server may be offline */ }
 
       let skillsFetched = false
       try {
-        const skillRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/skills`)
+        const skillRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/skills`)
         const skillData = await skillRes.json()
         if (Array.isArray(skillData) && skillData.length > 0) {
           setOfferingSkills(skillData.filter((s: UserSkill) => s.skill_type === 'offering'))
@@ -165,7 +165,7 @@ export default function Profile() {
   useEffect(() => {
     if (viewUserId) {
       loadProfile()
-      fetch(`https://backend-a41z.onrender.com/api/users/${viewUserId}/flag-status`)
+      fetch(`http://localhost:5000/api/users/${viewUserId}/flag-status`)
         .then(r => r.json())
         .then(d => { if (d.level > 0) setFlagInfo(d) })
         .catch(() => { })
@@ -176,7 +176,7 @@ export default function Profile() {
     if (!newSkill.trim() || !authUser?.id) return
     setAddingSkill(true)
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`, {
+      const res = await fetch(`http://localhost:5000/api/user/${authUser.id}/skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill_name: newSkill.trim(), skill_type: skillType })
@@ -194,7 +194,7 @@ export default function Profile() {
 
   const handleDeleteSkill = async (id: string) => {
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/skills/${id}`, { method: "DELETE" })
+      const res = await fetch(`http://localhost:5000/api/skills/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed to delete skill")
       loadProfile(true)
     } catch (err) { console.error(err) }

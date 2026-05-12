@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
-const API = 'https://backend-a41z.onrender.com';
+const API = 'http://localhost:5000';
 
 type UserRole = 'user' | 'admin' | 'moderator' | 'support';
 

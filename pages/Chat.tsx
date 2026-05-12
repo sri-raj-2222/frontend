@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import {
   Send, MessageSquare, Search,
@@ -23,7 +23,7 @@ import { io } from "socket.io-client"
 import type { Message, Room, ConnectionStage, Review } from "@/types"
 import { supabase } from "@/lib/supabase"
 
-const socket = io("https://backend-a41z.onrender.com")
+const socket = io("http://localhost:5000")
 
 
 export default function Chat() {
@@ -85,11 +85,11 @@ export default function Chat() {
 
   const loadRooms = useCallback(async () => {
     if (!user) return
-    let localRooms: any[] = []
+    let localRooms: Room[] = []
 
     // 1. Try local Express DB
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
+      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
       if (res.ok) localRooms = await res.json()
     } catch { /* server may be offline */ }
 
@@ -105,12 +105,12 @@ export default function Chat() {
         const partnerIds = [...new Set(sbRooms.map(r => r.user_a === user.id ? r.user_b : r.user_a))]
         const { data: partners } = await supabase
           .from('profiles').select('id, name, profile_pic').in('id', partnerIds)
-        const partnerMap: Record<string, any> = {}
+        const partnerMap: Record<string, {id: string; name?: string; profile_pic?: string | null}> = {}
           ; (partners || []).forEach(p => { partnerMap[p.id] = p })
 
         // Get task titles
         const taskIds = sbRooms.map(r => r.task_id).filter(Boolean)
-        let taskMap: Record<string, any> = {}
+        const taskMap: Record<string, {id: string; title?: string}> = {}
         if (taskIds.length > 0) {
           const { data: tasks } = await supabase
             .from('tasks').select('id, title').in('id', taskIds)
@@ -118,7 +118,7 @@ export default function Chat() {
         }
 
         // Merge: add Supabase rooms not already in local DB
-        const localIds = new Set(localRooms.map((r: any) => r.id))
+        const localIds = new Set(localRooms.map(r => r.id))
         sbRooms.forEach(r => {
           if (localIds.has(r.id)) return
           const partnerId = r.user_a === user.id ? r.user_b : r.user_a
@@ -164,7 +164,7 @@ export default function Chat() {
           .order('created_at', { ascending: true })
         setMessages(data || [])
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${roomId}/messages`)
+        const res = await fetch(`http://localhost:5000/api/chat/rooms/${roomId}/messages`)
         const data = await res.json()
         setMessages(data || [])
       }
@@ -179,7 +179,7 @@ export default function Chat() {
         setStages(stages || [])
         setRoomReviews(reviews || [])
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${roomId}/status`)
+        const res = await fetch(`http://localhost:5000/api/connections/${roomId}/status`)
         const data = await res.json()
         setStages(data.stages || [])
         setRoomReviews(data.reviews || [])
@@ -188,35 +188,35 @@ export default function Chat() {
     } catch (err) { console.error("Error loading room status:", err) }
   }, [])
 
-  // ── Auto-select room after list loads ────────────────────────────────────────
+  // -- Auto-select room after list loads ----------------------------------------
   // Runs whenever the rooms array changes (every loadRooms call)
   useEffect(() => {
     if (rooms.length === 0) return
     if (initialRoomId) {
-      // URL has a specific room — select it if found and not already active
-      const found = rooms.find((r: any) => r.id === initialRoomId)
+      // URL has a specific room � select it if found and not already active
+      const found = rooms.find(r => r.id === initialRoomId)
       if (found && activeRoom?.id !== found.id) setActiveRoom(found)
     } else if (!activeRoom) {
-      // No specific room and nothing selected — auto-open first room on desktop
+      // No specific room and nothing selected � auto-open first room on desktop
       setActiveRoom(rooms[0])
     }
   }, [rooms]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Polling: room not in list yet (Accept race condition) ────────────────────
+  // -- Polling: room not in list yet (Accept race condition) --------------------
   // Fires when URL has a roomId but the sync hasn't reached local DB yet
   useEffect(() => {
     if (!initialRoomId || !user) return
-    const alreadyFound = rooms.find((r: any) => r.id === initialRoomId)
+    const alreadyFound = rooms.find(r => r.id === initialRoomId)
     if (alreadyFound) return // already in list, no polling needed
 
     let attempts = 0
     const interval = setInterval(async () => {
       attempts++
       try {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
+        const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
         if (res.ok) {
-          const freshRooms: any[] = await res.json()
-          const target = freshRooms.find((r: any) => r.id === initialRoomId)
+          const freshRooms: Room[] = await res.json()
+          const target = freshRooms.find(r => r.id === initialRoomId)
           if (target) {
             setRooms(freshRooms)
             setActiveRoom(target)
@@ -288,19 +288,19 @@ export default function Chat() {
 
   useEffect(() => {
     if (activeRoom?.id) {
-      const isSb = (activeRoom as any).is_supabase
+      const isSb = activeRoom.is_supabase
       loadMessages(activeRoom.id, isSb)
       loadRoomStatus(activeRoom.id, isSb)
       setNotes(activeRoom.workspace_notes || "")
       socket.emit("join_room", activeRoom.id)
     }
-  }, [activeRoom?.id, activeRoom?.workspace_notes, loadMessages, loadRoomStatus])
+  }, [activeRoom?.id, activeRoom?.workspace_notes, activeRoom?.is_supabase, loadMessages, loadRoomStatus])
 
   const handleSend = async () => {
     if (!message.trim() || !activeRoom || !user) return
     const content = message.trim()
 
-    if ((activeRoom as any).is_supabase) {
+    if (activeRoom.is_supabase) {
       await supabase.from('chat_messages').insert({
         room_id: activeRoom.id,
         sender_id: user.id,
@@ -323,7 +323,7 @@ export default function Chat() {
   const handleSaveNotes = async () => {
     if (!activeRoom) return
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
+      const res = await fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes })
@@ -343,14 +343,14 @@ export default function Chat() {
   const generateAIPortalSummary = async () => {
     if (!activeRoom) return
     const hasNotes = notes.trim().length > 10
-    const isSbRoom = !!(activeRoom as any).isSb || !!(activeRoom as any).is_supabase
+    const isSbRoom = !!activeRoom.isSb || !!activeRoom.is_supabase
 
     setSummarizing(true)
     setAiResult(null)
     setAiError(null)
 
     try {
-      // Always fetch the full chat history — used in BOTH Polish and Generate modes
+      // Always fetch the full chat history � used in BOTH Polish and Generate modes
       // so the AI can read the actual conversation regardless of existing notes
       let freshMessages = messages
       if (isSbRoom) {
@@ -367,23 +367,22 @@ export default function Chat() {
       // (Supabase: sender_id/sender_name  |  Express: senderId/senderName)
       const chatLines = freshMessages
         .filter(m => {
-          const content = m.content || (m as any).message || ''
+          const content = m.content || m.message || ''
           return !content.startsWith('FILE_SHARE:') &&
             !content.startsWith('DELIVERY_NOTE:') &&
             m.sender_id !== 'ai-assistant' &&
             m.sender_id !== 'system' &&
-            (m as any).senderId !== 'ai-assistant' &&
-            (m as any).senderId !== 'system'
+            m.senderId !== 'ai-assistant' &&
+            m.senderId !== 'system'
         })
         .map(m => {
-          const senderName = m.sender_name || (m as any).senderName ||
-            (m.sender as any)?.name || 'User'
-          const content = m.content || (m as any).message || ''
+          const senderName = m.sender_name || m.senderName || m.sender?.name || 'User'
+          const content = m.content || m.message || ''
           return `${senderName}: ${content}`
         })
 
       const chatHistory = chatLines.join('\n')
-      const exchangeTopic = (activeRoom as any).task_title || (activeRoom as any).title || ''
+      const exchangeTopic = activeRoom.task_title || activeRoom.title || ''
 
       // Nothing to work with at all
       if (!hasNotes && chatLines.length === 0) {
@@ -395,12 +394,12 @@ export default function Chat() {
       // Send BOTH notes and chatHistory to the server in all cases.
       // Mode A (Polish): server will enrich notes WITH the chat context.
       // Mode B (Generate): server creates structured notes purely from chat.
-      const res = await fetch('https://backend-a41z.onrender.com/api/ai/analyze-notes', {
+      const res = await fetch('http://localhost:5000/api/ai/analyze-notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           notes: hasNotes ? notes : '',
-          chatHistory,                           // ← always included now
+          chatHistory,                           // ? always included now
           exchangeTopic,
         }),
       })
@@ -408,7 +407,7 @@ export default function Chat() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'AI request failed' }))
         const msg = res.status === 429
-          ? 'Rate limit reached — wait 30 seconds and try again.'
+          ? 'Rate limit reached � wait 30 seconds and try again.'
           : res.status === 503
             ? 'AI is not configured on the server. Please check the GROQ_API_KEY.'
             : (err.error || 'AI request failed')
@@ -420,7 +419,7 @@ export default function Chat() {
       setAiResult({ action: data.action, summary: data.summary })
 
       // Auto-save so both peers see the updated notes
-      fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
+      fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: data.improved }),
@@ -447,7 +446,7 @@ export default function Chat() {
   const handleConfirmStage = async (stage: 'connected' | 'work_done') => {
     if (!activeRoom || !user) return
     try {
-      if ((activeRoom as any).is_supabase) {
+      if (activeRoom.is_supabase) {
         await supabase.from('room_stages').insert({
           room_id: activeRoom.id,
           user_id: user.id,
@@ -456,7 +455,7 @@ export default function Chat() {
         })
         loadRoomStatus(activeRoom.id, true)
       } else {
-        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${activeRoom.id}/confirm`, {
+        const res = await fetch(`http://localhost:5000/api/connections/${activeRoom.id}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -482,7 +481,7 @@ export default function Chat() {
     if (!partnerId) { console.error('Could not resolve partner ID'); return }
 
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/reviews`, {
+      const res = await fetch(`http://localhost:5000/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -495,7 +494,7 @@ export default function Chat() {
           comment: reviewComment,
           tags: reviewTags,
           task_title: activeRoom.task_title || 'Skill Exchange',
-          task_id: (activeRoom as any).task_id || null
+          task_id: activeRoom.task_id || null
         })
       })
       if (res.ok) {
@@ -517,7 +516,7 @@ export default function Chat() {
   const handleRaiseDispute = async () => {
     if (!activeRoom || !user) return
     try {
-      const res = await fetch(`https://backend-a41z.onrender.com/api/disputes`, {
+      const res = await fetch(`http://localhost:5000/api/disputes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -543,7 +542,7 @@ export default function Chat() {
     if (!uploadData.title || !user || !activeRoom) return
     setUploading(true)
     try {
-      const res = await fetch('https://backend-a41z.onrender.com/api/notes/upload', {
+      const res = await fetch('http://localhost:5000/api/notes/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -725,9 +724,9 @@ export default function Chat() {
                               <span className="hidden sm:inline">{step.label}</span>
                             </div>
                             <div className="flex gap-1">
-                              <span className={cn("text-[7px] font-bold uppercase", myConfirm ? "text-green-500" : "text-muted-foreground/40")}>You {myConfirm ? '✓' : ''}</span>
+                              <span className={cn("text-[7px] font-bold uppercase", myConfirm ? "text-green-500" : "text-muted-foreground/40")}>You {myConfirm ? '?' : ''}</span>
                               <span className="text-[7px] opacity-20">/</span>
-                              <span className={cn("text-[7px] font-bold uppercase", peerConfirm ? "text-green-500" : "text-muted-foreground/40")}>Peer {peerConfirm ? '✓' : ''}</span>
+                              <span className={cn("text-[7px] font-bold uppercase", peerConfirm ? "text-green-500" : "text-muted-foreground/40")}>Peer {peerConfirm ? '?' : ''}</span>
                             </div>
                           </div>
                           {idx < 2 && (
@@ -835,7 +834,7 @@ export default function Chat() {
                                 <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI · Welcome Message</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI � Welcome Message</span>
                               </div>
                               {/* Body */}
                               <div className="px-6 py-5 bg-gradient-to-br from-primary/5 to-background">
@@ -956,7 +955,7 @@ export default function Chat() {
                             <Sparkles className="h-4 w-4" />
                           </motion.span>
                           {summarizing
-                            ? "AI Working…"
+                            ? "AI Working�"
                             : notes.trim()
                               ? "Polish Notes"
                               : "Generate from Chat"}
@@ -1328,7 +1327,7 @@ export default function Chat() {
 
       {showConfetti && (
         <div className="fixed inset-0 z-[200] pointer-events-none flex items-center justify-center">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.5, 1] }} transition={{ duration: 1 }} className="text-9xl">🎉</motion.div>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: [0, 1.5, 1] }} transition={{ duration: 1 }} className="text-9xl">??</motion.div>
           {/* Simple CSS Confetti simulation could be added here */}
         </div>
       )}
@@ -1357,7 +1356,7 @@ export default function Chat() {
             reportedUserName={partner.name || "User"}
             chatRoomId={activeRoom.id}
             messages={messages}
-            isSbRoom={!!(activeRoom as any).isSb || !!(activeRoom as any).is_supabase}
+            isSbRoom={!!activeRoom.isSb || !!activeRoom.is_supabase}
           />
         )
       })()}

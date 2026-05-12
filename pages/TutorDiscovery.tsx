@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 interface Broadcast {
   id: string
@@ -49,7 +49,7 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   advanced: 'text-red-600 bg-red-50 border-red-200',
 }
 
-// ── Class Detail Modal ────────────────────────────────────────────────────────
+// -- Class Detail Modal --------------------------------------------------------
 function ClassDetailModal({
   broadcast,
   onClose,
@@ -205,7 +205,7 @@ function ClassDetailModal({
             <div className="mb-6 p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3">
               <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                You will earn <span className="text-foreground font-black">+{broadcast.reward_credits} credits</span> added to your balance when you attend the session. Credits are awarded only to attendees — no-shows receive nothing.
+                You will earn <span className="text-foreground font-black">+{broadcast.reward_credits} credits</span> added to your balance when you attend the session. Credits are awarded only to attendees � no-shows receive nothing.
               </p>
             </div>
           )}
@@ -227,7 +227,7 @@ function ClassDetailModal({
               className="flex-1 h-14 rounded-2xl font-black shadow-none hover:scale-[1.02] active:scale-[0.98] transition-all gap-2 bg-primary text-primary-foreground"
             >
               {enrolling
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Enrolling…</>
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Enrolling�</>
                 : isFull
                   ? 'Class Full'
                   : <><CheckCircle2 className="h-4 w-4" /> Confirm Enrollment</>}
@@ -235,7 +235,7 @@ function ClassDetailModal({
           </div>
           {broadcast.reward_credits === 0 && (
             <p className="text-center text-[10px] font-black uppercase tracking-widest text-green-600 mt-3">
-              ✓ This class is completely free
+              ? This class is completely free
             </p>
           )}
         </div>
@@ -244,7 +244,7 @@ function ClassDetailModal({
   )
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// -- Main Page -----------------------------------------------------------------
 export default function TutorDiscovery() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -295,13 +295,13 @@ export default function TutorDiscovery() {
   const handleCardClick = (broadcast: Broadcast) => {
     if (!user) { alert("Please sign in to enroll in a class"); return }
 
-    // If live and already enrolled → open Jitsi directly
+    // If live and already enrolled ? open Jitsi directly
     if (broadcast.status === 'live' && broadcast.my_enrollment === 'enrolled') {
       window.open(`https://meet.jit.si/ShareSphere-${broadcast.id}`, '_blank')
       return
     }
 
-    // Already processed states → do nothing
+    // Already processed states ? do nothing
     if (broadcast.my_enrollment === 'attended' || broadcast.my_enrollment === 'no_show') return
     if (broadcast.posted_by === user.id) return
 
@@ -405,7 +405,7 @@ export default function TutorDiscovery() {
             <div className="relative group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search topics, tutors, or skills…"
+                placeholder="Search topics, tutors, or skills�"
                 className="h-16 pl-14 pr-6 rounded-[24px] border-border bg-card font-bold text-lg focus:ring-primary shadow-none" />
             </div>
           </div>
@@ -658,7 +658,7 @@ export default function TutorDiscovery() {
                         </div>
                       )}
 
-                      {/* Class chat — always visible for non-cancelled classes */}
+                      {/* Class chat � always visible for non-cancelled classes */}
                       {!isCancelled && (
                         <Button
                           onClick={() => navigate(`/broadcast-chat/${b.id}`)}

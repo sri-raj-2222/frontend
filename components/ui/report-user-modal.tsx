@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flag, X, ChevronRight, ChevronLeft, AlertTriangle,
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/auth-context'
 import type { Message } from '@/types'
 
-const API = 'https://backend-a41z.onrender.com'
+const API = 'http://localhost:5000'
 
 const REASON_CATEGORIES = [
   'Harassment / Hate speech',
@@ -33,7 +33,7 @@ interface ReportUserModalProps {
   isSbRoom?: boolean
 }
 
-// ── Inline Toast ──────────────────────────────────────────────────────────────
+// -- Inline Toast --------------------------------------------------------------
 interface ToastMsg { id: string; text: string; type: 'success' | 'error' }
 
 function Toast({ toasts, remove }: { toasts: ToastMsg[]; remove: (id: string) => void }) {
@@ -65,7 +65,7 @@ function Toast({ toasts, remove }: { toasts: ToastMsg[]; remove: (id: string) =>
   )
 }
 
-// ── Main Modal ────────────────────────────────────────────────────────────────
+// -- Main Modal ----------------------------------------------------------------
 export default function ReportUserModal({
   open, onClose, reportedUserId, reportedUserName, chatRoomId, messages = [], isSbRoom,
 }: ReportUserModalProps) {
@@ -207,7 +207,7 @@ export default function ReportUserModal({
           <div className="px-6 py-5 min-h-[220px]">
             <AnimatePresence mode="wait">
 
-              {/* ── Submitted ── */}
+              {/* -- Submitted -- */}
               {submitted && (
                 <motion.div key="done"
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -228,7 +228,7 @@ export default function ReportUserModal({
                 </motion.div>
               )}
 
-              {/* ── Step 1: Reason ── */}
+              {/* -- Step 1: Reason -- */}
               {!submitted && step === 1 && (
                 <motion.div key="step1"
                   initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -252,7 +252,7 @@ export default function ReportUserModal({
                 </motion.div>
               )}
 
-              {/* ── Step 2: Description + Evidence ── */}
+              {/* -- Step 2: Description + Evidence -- */}
               {!submitted && step === 2 && (
                 <motion.div key="step2"
                   initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
@@ -366,7 +366,7 @@ export default function ReportUserModal({
                   className="rounded-xl h-9 px-6 text-xs font-bold uppercase tracking-widest bg-destructive hover:bg-destructive/90 flex items-center gap-1.5"
                 >
                   {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Flag className="h-3.5 w-3.5" />}
-                  {submitting ? 'Submitting…' : 'Submit Report'}
+                  {submitting ? 'Submitting�' : 'Submit Report'}
                 </Button>
               )}
             </div>

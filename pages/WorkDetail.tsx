@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  ArrowLeft, Users, Trophy, Clock, CheckCircle2, XCircle, Loader2,
+  ArrowLeft, Users, Clock, CheckCircle2, XCircle, Loader2,
   AlertCircle, MessageSquare, Workflow, Briefcase, ChevronRight,
   UserCheck, UserX, Hourglass, Send
 } from "lucide-react"
@@ -11,14 +11,14 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 interface ProjectRole { id: string; name: string; skills: string[]; credits: number; filled: boolean }
 interface ProjectMember { user_id: string; user_name: string; user_avatar: string | null; role_name: string; credits_allocated: number }
 interface ProjectRequest {
   id: string; project_id: string; role_id: string; role_name: string
   contributor_id: string; contributor_name: string; contributor_avatar: string | null
-  message: string; status: string; created_at: string
+  message: string; status: string; created_at: string; skills?: string[]; posts?: string[]
 }
 interface Project {
   id: string; title: string; description: string; roles: ProjectRole[]
@@ -241,7 +241,7 @@ export default function WorkDetail() {
             {project.roles.map(role => {
               const acceptedMember = project.members.find(m => m.role_name === role.name)
               const myRoleRequest = project.requests.find(r => r.role_id === role.id && r.contributor_id === user?.id)
-              const canRequest = !isOwner && !isMember && !myRoleRequest && !role.filled && project.status === 'open'
+              const canRequest = !isOwner && !isMember && !myRequest && !role.filled && project.status === 'open'
 
               return (
                 <div key={role.id} className={cn(
@@ -328,10 +328,39 @@ export default function WorkDetail() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold">{req.contributor_name}</p>
-                      <p className="text-xs text-muted-foreground">Applying for: <span className="font-semibold text-foreground">{req.role_name}</span></p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        Applying for: <span className="font-semibold text-foreground">{req.role_name}</span>
+                        {project.roles.find(r => r.id === req.role_id)?.skills.length ? (
+                          <span className="text-[10px] opacity-60">
+                            (Needs: {project.roles.find(r => r.id === req.role_id)?.skills.join(", ")})
+                          </span>
+                        ) : null}
+                      </p>
                       {req.message && <p className="text-xs text-muted-foreground mt-1 italic">"{req.message}"</p>}
-                      <button onClick={() => navigate(`/profile?id=${req.contributor_id}`)}
-                        className="text-[10px] text-primary hover:underline mt-1">View Profile →</button>
+                      {req.skills && req.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {req.skills.map(s => (
+                            <span key={s} className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-bold border border-primary/20">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Worker Experience/Posts */}
+                      {req.posts && req.posts.length > 0 && (
+                        <div className="mt-3 space-y-1.5 pt-3 border-t border-border/50">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Past Experience</p>
+                          <div className="space-y-1">
+                            {req.posts.map((post, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium bg-secondary/30 px-2 py-1 rounded-md border border-border/30">
+                                <CheckCircle2 className="h-2.5 w-2.5 text-emerald-500 shrink-0" />
+                                <span className="truncate">{post}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

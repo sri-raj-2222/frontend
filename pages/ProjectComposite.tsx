@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   Plus, Users, Trophy, Loader2, Workflow, Briefcase,
   CheckCircle2, XCircle, Clock, ChevronRight, Hourglass,
-  Star, TrendingUp
+  Star, TrendingUp, AlertCircle
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 interface ProjectRole {
   id: string
@@ -59,6 +60,65 @@ export default function ProjectComposite() {
   const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(true)
 
+  // Post-project modal state
+  const [showPanel, setShowPanel] = useState(false)
+  const [panelTitle, setPanelTitle] = useState("")
+  const [panelDesc, setPanelDesc] = useState("")
+  const [panelDeadline, setPanelDeadline] = useState("")
+  const [panelPersons, setPanelPersons] = useState(1)
+  const [panelReward, setPanelReward] = useState(50)
+  const [panelPosting, setPanelPosting] = useState(false)
+  const [panelError, setPanelError] = useState<string | null>(null)
+  const [panelSuccess, setPanelSuccess] = useState(false)
+
+  const openPanel = () => {
+    setPanelTitle(""); setPanelDesc(""); setPanelDeadline("")
+    setPanelPersons(1); setPanelReward(50); setPanelError(null); setPanelSuccess(false)
+    setShowPanel(true)
+  }
+
+  const handlePanelPost = async () => {
+    if (!user) return
+    setPanelPosting(true)
+    setPanelError(null)
+    try {
+      const perPerson = Math.floor(panelReward / panelPersons)
+      const roles = Array.from({ length: panelPersons }, (_, i) => ({
+        id: crypto.randomUUID(),
+        name: `Contributor ${i + 1}`,
+        skills: [],
+        credits: i === panelPersons - 1 ? panelReward - perPerson * (panelPersons - 1) : perPerson,
+      }))
+      const res = await fetch(`${API}/api/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: panelTitle.trim(),
+          description: panelDesc.trim(),
+          roles,
+          min_team_size: panelPersons,
+          total_credits: panelReward,
+          deadline: panelDeadline || null,
+          owner_id: user.id,
+          owner_name: user.name,
+          owner_avatar: user.profilePic || null,
+        }),
+      })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Failed to post") }
+      setPanelSuccess(true)
+      setTimeout(() => { setShowPanel(false); setPanelSuccess(false); load() }, 2000)
+    } catch (e) {
+      setPanelError(e instanceof Error ? e.message : "Failed to post project")
+    } finally { setPanelPosting(false) }
+  }
+
+  const panelCanPost =
+    panelTitle.trim().length >= 3 &&
+    panelDesc.trim().length >= 10 &&
+    panelPersons >= 1 &&
+    panelReward > 0 &&
+    panelReward <= balance
+
   const load = useCallback(async () => {
     if (!user) return
     setLoading(true)
@@ -102,7 +162,7 @@ export default function ProjectComposite() {
             <div className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-primary/10 border border-primary/15 text-primary text-sm font-bold">
               <Trophy className="h-4 w-4" /> {balance} <span className="font-normal text-xs text-primary/70">credits</span>
             </div>
-            <Button onClick={() => navigate('/tasks/project/post')} className="h-9 px-4 rounded-xl text-xs font-semibold gap-2">
+            <Button onClick={openPanel} className="h-9 px-4 rounded-xl text-xs font-semibold gap-2">
               <Plus className="h-3.5 w-3.5" /> Post a Project
             </Button>
           </div>
@@ -138,7 +198,7 @@ export default function ProjectComposite() {
                 <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <Briefcase className="h-4 w-4" /> My Posted Projects
                 </h2>
-                <Button size="sm" variant="outline" onClick={() => navigate('/tasks/project/post')}
+                <Button size="sm" variant="outline" onClick={openPanel}
                   className="h-7 px-3 rounded-lg text-[11px] gap-1">
                   <Plus className="h-3 w-3" /> New
                 </Button>
@@ -149,7 +209,7 @@ export default function ProjectComposite() {
                   <Workflow className="h-10 w-10 mx-auto mb-4 text-muted-foreground opacity-20" />
                   <p className="text-sm font-semibold text-muted-foreground">No projects posted yet</p>
                   <p className="text-xs text-muted-foreground/60 mt-1 mb-5">Post a project to start building your team</p>
-                  <Button onClick={() => navigate('/tasks/project/post')} size="sm" className="gap-2">
+                  <Button onClick={openPanel} size="sm" className="gap-2">
                     <Plus className="h-3.5 w-3.5" /> Post Your First Project
                   </Button>
                 </div>
@@ -287,6 +347,164 @@ export default function ProjectComposite() {
           </div>
         )}
       </main>
+      {/* Post-Project Modal — styled like SkillIntake */}
+      <AnimatePresence>
+        {showPanel && (
+          <div className="fixed inset-0 z-[150] bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-xl bg-card border border-border rounded-[48px] shadow-2xl p-10 md:p-14 relative my-auto"
+            >
+              <AnimatePresence mode="wait">
+                {panelSuccess ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="py-16 text-center"
+                  >
+                    <div className="h-24 w-24 rounded-[32px] bg-green-500/10 flex items-center justify-center mx-auto mb-8">
+                      <CheckCircle2 className="h-12 w-12 text-green-500" />
+                    </div>
+                    <h2 className="text-3xl font-black mb-3">Project Posted!</h2>
+                    <p className="text-muted-foreground font-medium max-w-xs mx-auto">
+                      Your project is live. Contributors will be notified now…
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div key="form" exit={{ opacity: 0, y: -20 }} className="space-y-8">
+                    {/* Header */}
+                    <div className="text-center">
+                      <div className="h-14 w-14 rounded-[20px] bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                        <Workflow className="h-7 w-7 text-primary" />
+                      </div>
+                      <h2 className="text-3xl font-black tracking-tight mb-2">Post a Project</h2>
+                      <p className="text-muted-foreground font-medium">
+                        Define your project and hire the right people.
+                      </p>
+                      <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black">
+                        <Trophy className="h-3 w-3" /> {balance} credits available
+                      </div>
+                    </div>
+
+                    {/* Project Name */}
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                        Project Name *
+                      </label>
+                      <Input
+                        value={panelTitle}
+                        onChange={e => setPanelTitle(e.target.value)}
+                        placeholder="e.g. Build a Portfolio Website"
+                        className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
+                      />
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                        Description *
+                      </label>
+                      <textarea
+                        value={panelDesc}
+                        onChange={e => setPanelDesc(e.target.value)}
+                        placeholder="Describe scope, goals, and what contributors will work on…"
+                        className="w-full px-6 py-4 rounded-[24px] border border-border bg-secondary/20 text-sm font-bold shadow-inner resize-none focus:outline-none focus:border-primary/40 min-h-[96px]"
+                      />
+                    </div>
+
+                    {/* Deadline */}
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                        Deadline (optional)
+                      </label>
+                      <Input
+                        type="date"
+                        value={panelDeadline}
+                        onChange={e => setPanelDeadline(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                        className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
+                      />
+                    </div>
+
+                    {/* Persons + Reward */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                          Persons to Hire *
+                        </label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={panelPersons}
+                          onChange={e => setPanelPersons(Math.max(1, Number(e.target.value)))}
+                          className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">
+                          Reward (credits) *
+                        </label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={panelReward}
+                          onChange={e => setPanelReward(Math.max(1, Number(e.target.value)))}
+                          className="h-16 rounded-[24px] border-border bg-secondary/20 pl-6 text-sm font-bold shadow-inner focus:border-primary/40"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Per-person summary */}
+                    <div className="flex items-center justify-between px-5 py-3 rounded-[20px] bg-secondary/30 border border-border text-sm">
+                      <span className="font-black text-muted-foreground text-[11px] uppercase tracking-widest">Each contributor earns</span>
+                      <span className="font-black text-primary">
+                        ~{panelPersons > 0 ? Math.floor(panelReward / panelPersons) : 0} credits
+                      </span>
+                    </div>
+
+                    {/* Balance warning */}
+                    {panelReward > balance && (
+                      <div className="flex items-center gap-3 px-5 py-3 rounded-[20px] bg-destructive/5 border border-destructive/20 text-destructive text-xs font-black">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        Need {panelReward - balance} more credits (you have {balance})
+                      </div>
+                    )}
+
+                    {/* API error */}
+                    {panelError && (
+                      <div className="flex items-center gap-3 px-5 py-3 rounded-[20px] bg-destructive/10 border border-destructive/20 text-destructive text-sm font-black">
+                        <AlertCircle className="h-4 w-4 shrink-0" /> {panelError}
+                      </div>
+                    )}
+
+                    {/* Submit */}
+                    <Button
+                      onClick={handlePanelPost}
+                      disabled={!panelCanPost || panelPosting}
+                      className="w-full h-16 rounded-[28px] bg-foreground text-background font-black text-base shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
+                    >
+                      {panelPosting
+                        ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Posting…</>
+                        : "Confirm & Post Project →"}
+                    </Button>
+
+                    <button
+                      onClick={() => !panelPosting && setShowPanel(false)}
+                      className="w-full text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

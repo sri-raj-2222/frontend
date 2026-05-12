@@ -9,10 +9,42 @@ import {
 
 const API = "http://localhost:5000"
 
+// ── Shared types ──────────────────────────────────────────────────────────────
+interface AdminSession { id?: string; email?: string; name?: string; role?: string }
+interface UserProfile {
+  profile_pic?: string | null; name?: string; email?: string; status?: string
+  rating?: number; sessions_count?: number; reports_count?: number; warning_count?: number
+  projects_completed?: number; verified?: boolean
+  skills?: { id?: string; skill_name: string; skill_type: string }[]
+}
+interface ReportUser {
+  profile_pic?: string | null; name?: string; email?: string
+  created_at?: string; warning_count?: number; status?: string
+}
+interface ChatMsg { id?: string; content: string; sender_name?: string }
+interface PriorReport { id: string; reason_category: string; status: string; created_at: string }
+interface ModerationAction {
+  id: string; action_type: string; duration_days?: number; created_at: string; admin_note: string
+}
+interface ReportEntry {
+  id: string; reason_category: string; status: string; description: string; created_at: string
+  chat_room_id?: string; evidence_message_ids?: string[]
+  reporter_id?: string; reported_user_id?: string
+  reporter?: ReportUser; reported?: ReportUser
+  distinct_reporter_count?: number
+}
+interface ReportData {
+  report: ReportEntry
+  chatHistory: ChatMsg[]
+  priorReports: PriorReport[]
+  moderationActions: ModerationAction[]
+  distinctReporterCount: number
+  reporterFiledCount: number
+}
 
 // ── User Profile Modal ────────────────────────────────────────────────────────
 function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => void }) {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -69,7 +101,7 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Skills</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {data.skills.slice(0, 8).map((s: any) => (
+                    {data.skills.slice(0, 8).map((s) => (
                       <span key={s.id || s.skill_name} className={`text-[10px] font-bold px-2 py-1 rounded-lg ${s.skill_type === 'offering' ? 'bg-primary/10 text-primary' : 'bg-amber-500/10 text-amber-500'}`}>
                         {s.skill_name}
                       </span>
@@ -123,7 +155,7 @@ function FlagIcon({ color, label }: { color: string; label: string }) {
   )
 }
 
-function UserChip({ profile, flagCount = 0, onClick }: { profile: any; flagCount?: number; onClick?: () => void }) {
+function UserChip({ profile, flagCount = 0, onClick }: { profile: ReportUser | undefined; flagCount?: number; onClick?: () => void }) {
   if (!profile) return <span className="text-muted-foreground text-xs">—</span>
   const flagColor = flagCount >= 3 ? 'red' : flagCount >= 1 ? 'yellow' : 'none'
   const flagLabel = flagCount >= 3 ? `${flagCount} reports` : flagCount >= 1 ? `${flagCount} report` : ''
@@ -149,9 +181,9 @@ function UserChip({ profile, flagCount = 0, onClick }: { profile: any; flagCount
 
 // ── Detail + Action Panel ─────────────────────────────────────────────────────
 function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
-  reportId: string; adminSession: any; onBack: () => void; onActionDone: () => void
+  reportId: string; adminSession: AdminSession; onBack: () => void; onActionDone: () => void
 }) {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionType, setActionType] = useState("")
   const [adminNote, setAdminNote] = useState("")
@@ -195,7 +227,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
       } else {
         setActionMsg({ text: res.error || "Failed to submit action.", ok: false })
       }
-    } catch (err) {
+    } catch {
       setActionMsg({ text: "Network error — please check the server and try again.", ok: false })
     } finally { setSubmitting(false) }
   }
@@ -301,7 +333,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
           </div>
           {showChat && (
             <div className="max-h-64 overflow-y-auto p-4 space-y-2">
-              {chatHistory.map((msg: any) => {
+              {chatHistory.map((msg: ChatMsg) => {
                 const isEvidence = report.evidence_message_ids?.includes(msg.id)
                 return (
                   <div key={msg.id || msg.content} className={`px-3 py-2 rounded-xl text-xs ${isEvidence ? 'bg-destructive/10 border border-destructive/30' : 'bg-secondary/30'}`}>
@@ -329,7 +361,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
             Prior Reports Against This User ({priorReports.length})
           </p>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {priorReports.map((r: any) => (
+            {priorReports.map((r: PriorReport) => (
               <div key={r.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-secondary/30">
                 <span className="text-xs text-foreground font-medium">{r.reason_category}</span>
                 <div className="flex items-center gap-2">
@@ -347,7 +379,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
         <div className="bg-card border border-border rounded-2xl p-5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Moderation History</p>
           <div className="space-y-2">
-            {moderationActions.map((a: any) => (
+            {moderationActions.map((a: ModerationAction) => (
               <div key={a.id} className="px-3 py-2 rounded-xl bg-secondary/30 space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-foreground capitalize">{a.action_type.replace("_", " ")}</span>
@@ -439,7 +471,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
 
 // ── Main Reports Panel ────────────────────────────────────────────────────────
 export default function ReportsPanel() {
-  const [reports, setReports] = useState<any[]>([])
+  const [reports, setReports] = useState<ReportEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState("")

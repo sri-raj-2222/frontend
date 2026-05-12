@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   CheckCircle2, Inbox, Send, MessageSquare, Clock, XCircle
@@ -60,11 +60,11 @@ export default function MyActivity() {
     if (!user) return
     setLoading(true)
     try {
-      // ── 1. Local Express DB ────────────────────────────────────────────────
+      // -- 1. Local Express DB ------------------------------------------------
       let expressIncoming: ExchangeRequest[] = []
       let expressOutgoing: ExchangeRequest[] = []
       try {
-        const expressRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
+        const expressRes = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
         if (expressRes.ok) {
           const expressData = await expressRes.json()
           expressIncoming = expressData.incoming || []
@@ -72,19 +72,19 @@ export default function MyActivity() {
         }
       } catch { /* server may be offline */ }
 
-      // ── 2. Supabase task_requests (flat — no FK joins) ─────────────────────
+      // -- 2. Supabase task_requests (flat � no FK joins) ---------------------
       const { data: sbReqs } = await supabase
         .from('task_requests')
         .select('id, task_id, requester_id, owner_id, status, created_at')
         .or(`requester_id.eq.${user.id},owner_id.eq.${user.id}`)
 
-      let sbIncoming: ExchangeRequest[] = []
-      let sbOutgoing: ExchangeRequest[] = []
+      const sbIncoming: ExchangeRequest[] = []
+      const sbOutgoing: ExchangeRequest[] = []
 
       if (sbReqs && sbReqs.length > 0) {
         // Get task titles
         const taskIds = [...new Set(sbReqs.map(r => r.task_id).filter(Boolean))]
-        let taskMap: Record<string, any> = {}
+        const taskMap: Record<string, {id: string; title?: string; offering?: string; wanting?: string}> = {}
         if (taskIds.length > 0) {
           const { data: tasks } = await supabase.from('tasks').select('id, title, offering, wanting').in('id', taskIds)
             ; (tasks || []).forEach(t => { taskMap[t.id] = t })
@@ -92,7 +92,7 @@ export default function MyActivity() {
 
         // Get user names for requester + owner IDs
         const userIds = [...new Set([...sbReqs.map(r => r.requester_id), ...sbReqs.map(r => r.owner_id)].filter(Boolean))]
-        let profileMap: Record<string, any> = {}
+        const profileMap: Record<string, {id: string; name?: string; profile_pic?: string | null}> = {}
         if (userIds.length > 0) {
           const { data: profiles } = await supabase.from('profiles').select('id, name, profile_pic').in('id', userIds)
             ; (profiles || []).forEach(p => { profileMap[p.id] = p })
@@ -127,7 +127,7 @@ export default function MyActivity() {
         })
       }
 
-      // ── 3. Merge all data ────────────────────────────────────────────────────
+      // -- 3. Merge all data ----------------------------------------------------
       const allIncoming = [...expressIncoming, ...sbIncoming]
       const allOutgoing = [...expressOutgoing, ...sbOutgoing]
       const activeStatuses = ['pending', 'active', 'in_progress', 'pending_feedback']
@@ -176,10 +176,10 @@ export default function MyActivity() {
       const requestType = request.type || 'direct'
 
       if (isLocalRequest) {
-        let data: any = null
+        let data: {room?: {id?: string}} | null = null
 
         if (requestType === 'match') {
-          const res = await fetch(`https://backend-a41z.onrender.com/api/match-requests/${request.id}`, {
+          const res = await fetch(`http://localhost:5000/api/match-requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -187,7 +187,7 @@ export default function MyActivity() {
           data = await res.json()
         } else {
           const taskId = request.task_id || 'null'
-          const res = await fetch(`https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`, {
+          const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'accepted' })
@@ -196,12 +196,12 @@ export default function MyActivity() {
         }
 
         const room = data?.room
-        addNotification('Request accepted! Opening chat…', 'success')
+        addNotification('Request accepted! Opening chat�', 'success')
         navigate(room?.id ? `/chat?room=${room.id}` : '/chat')
         return
       }
 
-      // ── Supabase request flow ────────────────────────────────────────────────
+      // -- Supabase request flow ------------------------------------------------
       const requesterUserId = request.requester_id
       if (!requesterUserId || !user?.id) {
         addNotification('Cannot identify request parties', 'info')
@@ -234,7 +234,7 @@ export default function MyActivity() {
       }
 
       if (!roomId) {
-        // Create in Supabase (no metadata column — doesn't exist in schema)
+        // Create in Supabase (no metadata column � doesn't exist in schema)
         const { data: newRoom, error: roomError } = await supabase
           .from('chat_rooms')
           .insert({
@@ -251,17 +251,17 @@ export default function MyActivity() {
 
       // 3. Sync to local Express DB AND emit server-side socket to requester
       //    (only the server can push socket events to another connected user)
-      // Resolve requester name: request object → local DB → UUID prefix
+      // Resolve requester name: request object ? local DB ? UUID prefix
       let requesterName = request.requester?.name || ''
       if (!requesterName) {
         try {
-          const nr = await fetch(`https://backend-a41z.onrender.com/api/user-name/${requesterUserId}`)
+          const nr = await fetch(`http://localhost:5000/api/user-name/${requesterUserId}`)
           if (nr.ok) { const nd = await nr.json(); requesterName = nd.name || '' }
         } catch { /* ignore */ }
       }
       if (!requesterName) requesterName = requesterUserId?.split('-')[0] || 'User'
 
-      const notifyRes = await fetch('https://backend-a41z.onrender.com/api/accept-and-notify', {
+      const notifyRes = await fetch('http://localhost:5000/api/accept-and-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -276,11 +276,11 @@ export default function MyActivity() {
       })
 
       if (!notifyRes.ok) {
-        const errData = await notifyRes.json().catch(() => ({}))
-        console.warn('accept-and-notify failed:', (errData as any).error)
+        const errData = await notifyRes.json().catch(() => ({})) as {error?: string}
+        console.warn('accept-and-notify failed:', errData.error)
       }
 
-      addNotification('Request accepted! Opening chat…', 'success')
+      addNotification('Request accepted! Opening chat�', 'success')
       navigate(roomId ? `/chat?room=${roomId}` : '/chat')
     } catch (err) {
       console.error("Accept Flow Error:", err)
@@ -296,10 +296,10 @@ export default function MyActivity() {
       if (isLocalRequest) {
         let endpoint = ''
         if (requestType === 'match') {
-          endpoint = `https://backend-a41z.onrender.com/api/match-requests/${request.id}`
+          endpoint = `http://localhost:5000/api/match-requests/${request.id}`
         } else {
           const taskId = request.task_id || 'null'
-          endpoint = `https://backend-a41z.onrender.com/api/tasks/${taskId}/requests/${request.id}`
+          endpoint = `http://localhost:5000/api/tasks/${taskId}/requests/${request.id}`
         }
         await fetch(endpoint, {
           method: 'PATCH',

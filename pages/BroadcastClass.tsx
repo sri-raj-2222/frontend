@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 const CATEGORIES = ['General', 'Development', 'Design', 'Marketing', 'Data Science', 'Business', 'Language', 'Music', 'Other']
 const DIFFICULTIES = ['beginner', 'intermediate', 'advanced']
@@ -46,7 +46,7 @@ interface Enrollment {
   enrolled_at: string
 }
 
-// ── Custom Calendar Date Picker ───────────────────────────────────────────────
+// -- Custom Calendar Date Picker -----------------------------------------------
 function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
   value: string
   onChange: (v: string) => void
@@ -211,7 +211,7 @@ function DatePicker({ value, onChange, placeholder = "Select deadline date" }: {
   )
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// -- Main Component ------------------------------------------------------------
 const EMPTY_FORM = {
   title: '', description: '', duration: '',
   deadline: '', scheduled_at: '', max_people: '10',
@@ -350,7 +350,7 @@ export default function BroadcastClass() {
     await loadEnrollments(broadcast.id)
   }
 
-  // ── CREATE VIEW ─────────────────────────────────────────────────────────────
+  // -- CREATE VIEW -------------------------------------------------------------
   if (view === 'create') {
     return (
       <div className="min-h-screen bg-background text-foreground transition-colors">
@@ -457,7 +457,7 @@ export default function BroadcastClass() {
                     </p>
                   </div>
 
-                  {/* Enrollment Deadline — custom calendar */}
+                  {/* Enrollment Deadline � custom calendar */}
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 flex items-center gap-2">
                       <Calendar className="h-3 w-3" /> Enrollment Deadline
@@ -527,7 +527,7 @@ export default function BroadcastClass() {
                     <Button type="submit" disabled={submitting}
                       className="w-full h-16 rounded-[24px] bg-primary text-primary-foreground font-black text-xl shadow-none hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                       {submitting
-                        ? <><Loader2 className="h-5 w-5 animate-spin" /> Posting…</>
+                        ? <><Loader2 className="h-5 w-5 animate-spin" /> Posting�</>
                         : <><Send className="h-5 w-5" /> Post Class</>}
                     </Button>
                     <p className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-5 flex items-center justify-center gap-2">
@@ -544,7 +544,7 @@ export default function BroadcastClass() {
     )
   }
 
-  // ── MANAGE VIEW ─────────────────────────────────────────────────────────────
+  // -- MANAGE VIEW -------------------------------------------------------------
   if (view === 'manage' && selected) {
     const isDraft = selected.status === 'draft'
     const isPublished = selected.status === 'published'
@@ -729,7 +729,7 @@ export default function BroadcastClass() {
                   {selected.reward_credits > 0 && (
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-black text-sm">
                       <Award className="h-4 w-4" />
-                      {totalAwarded} credits awarded ({attendedCount} × {selected.reward_credits} cr each)
+                      {totalAwarded} credits awarded ({attendedCount} � {selected.reward_credits} cr each)
                     </div>
                   )}
                 </div>
@@ -766,7 +766,7 @@ export default function BroadcastClass() {
     )
   }
 
-  // ── LIST VIEW ────────────────────────────────────────────────────────────────
+  // -- LIST VIEW ----------------------------------------------------------------
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
       <Navbar />

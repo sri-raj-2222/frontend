@@ -1,36 +1,33 @@
-﻿import { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Navigate } from "react-router-dom"
 import { Shield } from "lucide-react"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const raw = localStorage.getItem("admin_session")
-    if (!raw) { setChecking(false); return }
-
-    try {
-      const session = JSON.parse(raw)
-      if (!session?.email) { setChecking(false); return }
-
-      // Re-verify email against the Express server on every visit
-      fetch(`${API}/api/admin/verify?email=${encodeURIComponent(session.email)}`)
-        .then(r => r.json())
-        .then(data => {
+    async function verify() {
+      const raw = localStorage.getItem("admin_session")
+      if (!raw) { setChecking(false); return }
+      try {
+        const session = JSON.parse(raw)
+        if (!session?.email) { setChecking(false); return }
+        try {
+          const r = await fetch(`${API}/api/admin/verify?email=${encodeURIComponent(session.email)}`)
+          const data = await r.json()
           setIsAdmin(!!data.isAdmin)
-          setChecking(false)
-        })
-        .catch(() => {
-          // If server is unreachable, trust the localStorage session
+        } catch {
           setIsAdmin(true)
-          setChecking(false)
-        })
-    } catch {
+        }
+      } catch {
+        /* ignore parse errors */
+      }
       setChecking(false)
     }
+    verify()
   }, [])
 
   if (checking) {
@@ -39,7 +36,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
         <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center animate-pulse">
           <Shield className="h-6 w-6 text-primary-foreground" />
         </div>
-        <p className="text-sm text-muted-foreground animate-pulse">Verifying admin access…</p>
+        <p className="text-sm text-muted-foreground animate-pulse">Verifying admin access�</p>
       </div>
     )
   }

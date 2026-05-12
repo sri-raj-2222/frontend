@@ -1,4 +1,4 @@
-﻿import { useState, useId } from "react"
+import { useState, useId } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { GetStartedButton } from "@/components/ui/get-started-button"
@@ -59,7 +59,7 @@ export default function AuthDialog({
 
     try {
       if (mode === 'signup') {
-        // ── Regular user sign up via Supabase ──────────────────────────────
+        // -- Regular user sign up via Supabase ------------------------------
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -76,11 +76,11 @@ export default function AuthDialog({
         return
 
       } else {
-        // ── LOGIN: Try admin first, then regular user ──────────────────────
+        // -- LOGIN: Try admin first, then regular user ----------------------
 
         // Step 1: Check if email + password matches an admin account
         try {
-          const adminRes = await fetch('https://backend-a41z.onrender.com/api/admin/login', {
+          const adminRes = await fetch('http://localhost:5000/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email.trim().toLowerCase(), password })
@@ -88,7 +88,7 @@ export default function AuthDialog({
 
           if (adminRes.ok) {
             const adminData = await adminRes.json()
-            // ✅ Admin credentials matched — set session and go to admin panel
+            // ? Admin credentials matched � set session and go to admin panel
             localStorage.setItem('admin_session', JSON.stringify(adminData.admin))
             setOpen(false)
             navigate('/admin', { replace: true })
@@ -96,31 +96,31 @@ export default function AuthDialog({
           }
           // If adminRes is 401 (wrong creds for admin), fall through to user login
         } catch {
-          // Server might not be running — silently fall through to Supabase login
+          // Server might not be running � silently fall through to Supabase login
         }
 
         // Step 2: Regular Supabase user login
         const { data: loginData, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
 
-        // ── Ban check: verify the user isn't banned before letting them in ──
+        // -- Ban check: verify the user isn't banned before letting them in --
         const userId = loginData.user?.id
         if (userId) {
           try {
-            const banRes = await fetch(`https://backend-a41z.onrender.com/api/users/${userId}/ban-status`)
+            const banRes = await fetch(`http://localhost:5000/api/users/${userId}/ban-status`)
             const banData = await banRes.json()
             if (banData.banned) {
               // Sign them back out immediately so the session is not persisted
               await supabase.auth.signOut()
               const banMsg = banData.type === 'permanent'
-                ? '🚫 Your account has been permanently suspended. Contact support@sharesphere.app to appeal.'
-                : `🚫 Your account is temporarily suspended. It lifts on ${new Date(banData.ban_expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
+                ? '?? Your account has been permanently suspended. Contact support@sharesphere.app to appeal.'
+                : `?? Your account is temporarily suspended. It lifts on ${new Date(banData.ban_expires_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.`
               setError(banMsg)
               setIsLoading(false)
               return
             }
           } catch {
-            // Server offline — fail open (don't block login if server unreachable)
+            // Server offline � fail open (don't block login if server unreachable)
           }
         }
 

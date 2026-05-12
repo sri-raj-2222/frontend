@@ -9,6 +9,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  publicDir: '../public',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),

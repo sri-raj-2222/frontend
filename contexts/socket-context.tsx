@@ -18,6 +18,24 @@ interface SocketContextType {
   isConnected: boolean;
 }
 
+interface NotificationNewPayload {
+  content: string;
+  type: string;
+}
+
+interface RequestNewPayload {
+  requester?: { name?: string };
+  requesterName?: string;
+}
+
+interface RequestAcceptedPayload {
+  taskTitle: string;
+}
+
+interface MatchAcceptedPayload {
+  peer_name?: string;
+}
+
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -37,15 +55,14 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     console.log('[SocketProvider] Initializing socket connection...');
-    const newSocket = io('https://backend-a41z.onrender.com', {
+    const newSocket = io('http://localhost:5000', {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
 
-    setSocket(newSocket);
-
     newSocket.on('connect', () => {
       console.log('[SocketProvider] Connected to server. Socket ID:', newSocket.id);
+      setSocket(newSocket);
       setIsConnected(true);
     });
 
@@ -78,29 +95,27 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         socket.once('connect', register);
       }
 
-      // Handle server-side events
-      socket.on('notification:new', (data: any) => {
+      socket.on('notification:new', (data: NotificationNewPayload) => {
         console.log('[SocketProvider] received notification:new', data);
         addNotification(data.content, data.type === 'match_request' ? 'match' : 'info');
       });
 
-      socket.on('request:new', (data: any) => {
+      socket.on('request:new', (data: RequestNewPayload) => {
         console.log('[SocketProvider] received request:new', data);
         const name = data.requester?.name || data.requesterName || 'Someone';
         addNotification(`${name} sent you a request!`, 'request');
       });
 
-      socket.on('request:accepted', (data: any) => {
+      socket.on('request:accepted', (data: RequestAcceptedPayload) => {
         console.log('[SocketProvider] received request:accepted', data);
         addNotification(`Request for "${data.taskTitle}" accepted!`, 'success');
       });
 
-      socket.on('match:accepted', (data: any) => {
+      socket.on('match:accepted', (data: MatchAcceptedPayload) => {
         console.log('[SocketProvider] received match:accepted', data);
         addNotification(`${data.peer_name || 'Your peer'} accepted the match!`, 'match');
       });
 
-      // Supabase Realtime listener
       const channel = supabase
         .channel(`global_notifications:${user.id}`)
         .on('postgres_changes', {
@@ -110,7 +125,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           filter: `user_id=eq.${user.id}`
         }, (payload) => {
           console.log('[SocketProvider] Supabase notification:', payload.new)
-          addNotification(payload.new.message, payload.new.type === 'task_request' ? 'request' : 'info')
+          const row = payload.new as { message?: string; type?: string }
+          addNotification(row.message ?? '', row.type === 'task_request' ? 'request' : 'info')
         })
         .subscribe()
 
@@ -128,11 +144,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <SocketContext.Provider value={{ socket, notifications, addNotification, removeNotification, isConnected }}>
       {children}
       <NotificationToast notifications={notifications} removeNotification={removeNotification} />
-
     </SocketContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSocket = () => {
   const context = useContext(SocketContext);
   if (context === undefined) {

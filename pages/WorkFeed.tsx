@@ -8,9 +8,10 @@ import {
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
+import { useSocket } from "@/contexts/socket-context"
 import { cn } from "@/lib/utils"
 
-const API = "https://backend-a41z.onrender.com"
+const API = "http://localhost:5000"
 
 interface ProjectRole {
   id: string
@@ -44,7 +45,7 @@ function isRecent(createdAt: string) {
 
 export default function WorkFeed() {
   const { user } = useAuth()
-  const navigate = useNavigate()
+  const { socket, addNotification } = useSocket()
   const [tab, setTab] = useState<'browse' | 'recent'>('browse')
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,6 +71,17 @@ export default function WorkFeed() {
   }, [user])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (!socket) return
+    const onProjectPosted = ({ project }: { project: Project }) => {
+      if (project.owner_id === user?.id) return
+      setProjects(prev => prev.some(p => p.id === project.id) ? prev : [project, ...prev])
+      addNotification(`New project posted: "${project.title}"`, 'info')
+    }
+    socket.on('project:posted', onProjectPosted)
+    return () => { socket.off('project:posted', onProjectPosted) }
+  }, [socket, user?.id, addNotification])
 
   const recentProjects = projects.filter(p => isRecent(p.created_at))
   const browseProjects = filterMatch && userSkills.length > 0
@@ -200,7 +212,8 @@ function ProjectCard({
   const filledRoles = project.roles.filter(r => r.filled)
   const matchingRoles = openRoles.filter(r => r.skills.some(s => userSkills.includes(s.toLowerCase())))
   const hasMatch = matchingRoles.length > 0 && currentUserId !== project.owner_id
-  const daysAgo = Math.floor((Date.now() - new Date(project.created_at).getTime()) / 86400000)
+  const [now] = useState(Date.now)
+  const daysAgo = Math.floor((now - new Date(project.created_at).getTime()) / 86400000)
 
   return (
     <motion.div
