@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom"
+﻿import { Routes, Route } from "react-router-dom"
 import Home from "./pages/Home"
 import SignIn from "./pages/SignIn"
 import Dashboard from "./pages/Dashboard"
@@ -26,7 +26,7 @@ function App() {
   
   const { banInfo, logout } = useAuth()
 
-  // Global ban gate — if the current user is banned, show BannedScreen
+  // Global ban gate â€” if the current user is banned, show BannedScreen
   if (banInfo) {
     return (
       <BannedScreen

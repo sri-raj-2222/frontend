@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -44,12 +44,12 @@ function buildUserFromSession(su: SupabaseUser): User {
       su.user_metadata?.avatar_url ||
       su.user_metadata?.picture ||
       su.user_metadata?.profilePic || null,
-    role: 'user', // default — updated asynchronously below
+    role: 'user', // default â€” updated asynchronously below
   };
 }
 
 // Ensures a user row exists in both `users` and `profiles` tables.
-// task_requests.requester_id has a FK → users.id, so the row must exist.
+// task_requests.requester_id has a FK â†’ users.id, so the row must exist.
 async function ensureUserRow(su: SupabaseUser) {
   const name = su.user_metadata?.name || su.user_metadata?.full_name || su.email?.split('@')[0] || 'User';
   const email = su.email || '';
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [banInfo, setBanInfo] = useState<BanInfo | null>(null);
 
-  // ── 1. Sync auth state + ensure DB rows exist ─────────────────────────────
+  // â”€â”€ 1. Sync auth state + ensure DB rows exist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     // Initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
-    // Listen for sign-in / sign-out — must stay synchronous
+    // Listen for sign-in / sign-out â€” must stay synchronous
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // ── 2. Async profile fetch + ban check ────────────────────────────────────
+  // â”€â”€ 2. Async profile fetch + ban check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!user?.id) return;
 
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setBanInfo(null);
         }
       })
-      .catch(() => { /* server offline — fail open */ });
+      .catch(() => { /* server offline â€” fail open */ });
   }, [user?.id]);
 
   const clearBan = () => setBanInfo(null);

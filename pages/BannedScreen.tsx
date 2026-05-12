@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { motion } from "framer-motion"
 import { ShieldX, Clock, Mail, LogOut } from "lucide-react"
 
@@ -105,7 +105,7 @@ export default function BannedScreen({ type, banExpiresAt, onLogout }: BannedScr
         </div>
 
         <p className="text-center text-[11px] text-muted-foreground/60 mt-4">
-          ShareSphere · Community Guidelines Enforcement
+          ShareSphere Â· Community Guidelines Enforcement
         </p>
       </motion.div>
     </div>

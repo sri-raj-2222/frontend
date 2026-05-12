@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+ï»¿import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -457,7 +457,7 @@ export default function BroadcastClass() {
                     </p>
                   </div>
 
-                  {/* Enrollment Deadline — custom calendar */}
+                  {/* Enrollment Deadline â€” custom calendar */}
                   <div className="space-y-3">
                     <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 flex items-center gap-2">
                       <Calendar className="h-3 w-3" /> Enrollment Deadline
@@ -527,7 +527,7 @@ export default function BroadcastClass() {
                     <Button type="submit" disabled={submitting}
                       className="w-full h-16 rounded-[24px] bg-primary text-primary-foreground font-black text-xl shadow-none hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                       {submitting
-                        ? <><Loader2 className="h-5 w-5 animate-spin" /> Posting…</>
+                        ? <><Loader2 className="h-5 w-5 animate-spin" /> Postingâ€¦</>
                         : <><Send className="h-5 w-5" /> Post Class</>}
                     </Button>
                     <p className="text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-5 flex items-center justify-center gap-2">
@@ -729,7 +729,7 @@ export default function BroadcastClass() {
                   {selected.reward_credits > 0 && (
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 font-black text-sm">
                       <Award className="h-4 w-4" />
-                      {totalAwarded} credits awarded ({attendedCount} × {selected.reward_credits} cr each)
+                      {totalAwarded} credits awarded ({attendedCount} Ã— {selected.reward_credits} cr each)
                     </div>
                   )}
                 </div>

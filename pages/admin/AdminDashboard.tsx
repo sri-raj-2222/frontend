@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+﻿import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import {
@@ -12,7 +12,7 @@ import ReportsPanel from "./ReportsPanel"
 
 const API = "http://localhost:5000"
 
-// ── Status badge colours ──────────────────────────────────────────────────────
+// â”€â”€ Status badge colours â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const badge: Record<string, string> = {
   open: "text-blue-600 dark:text-blue-400 bg-blue-500/10",
   active: "text-primary bg-primary/10",
@@ -44,7 +44,7 @@ function Empty({ label }: { label: string }) {
   )
 }
 
-// ── Sidebar items ─────────────────────────────────────────────────────────────
+// â”€â”€ Sidebar items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Overview", id: "overview" },
   { icon: Users, label: "Users", id: "users" },
@@ -55,7 +55,7 @@ const sidebarItems = [
   { icon: Settings, label: "Settings", id: "settings" },
 ]
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// â”€â”€ Main component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const [sidebar, setSidebar] = useState(true)
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [refresh, setRefresh] = useState(0)
 
-  // ── Real data states ───────────────────────────────────────────────────────
+  // â”€â”€ Real data states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [stats, setStats] = useState<Record<string, number>>({})
   const [users, setUsers] = useState<Record<string, unknown>[]>([])
   const [tasks, setTasks] = useState<Record<string, unknown>[]>([])
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
     navigate("/", { replace: true })
   }
 
-  // ── Fetch all data ─────────────────────────────────────────────────────────
+  // â”€â”€ Fetch all data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     const load = async () => {
       setLoading(true)
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
     load()
   }, [refresh])
 
-  // ── Stat cards ─────────────────────────────────────────────────────────────
+  // â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const cards = [
     { label: "Total Users", value: users.length, icon: Users },
     { label: "Total Tasks", value: stats.totalTasks ?? 0, icon: Briefcase },
@@ -124,18 +124,18 @@ export default function AdminDashboard() {
     { label: "Reviews", value: stats.totalReviews ?? 0, icon: CreditCard },
   ]
 
-  // ── Table renderer ─────────────────────────────────────────────────────────
+  // â”€â”€ Table renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderTable = () => {
     if (active === "users") return (
       <Table
         title="All Users"
         headers={["Name", "Email", "Role", "Last Updated"]}
         rows={users.map(u => [
-          u.name || "—",
-          u.email || "—",
-          <Badge v={u.role || "user"} />,
-          u.updated_at ? new Date(u.updated_at).toLocaleDateString() : "—",
-        ])}
+          (u.name as string) || "â€”",
+          (u.email as string) || "â€”",
+          <Badge v={(u.role as string) || "user"} />,
+          u.updated_at ? new Date(u.updated_at as string).toLocaleDateString() : "â€”",
+        ]) as (string | number | React.ReactNode)[][]}
         empty="users"
       />
     )
@@ -145,13 +145,13 @@ export default function AdminDashboard() {
         title="All Tasks / Projects"
         headers={["Title", "Type", "Offering", "Wanting", "Status", "Posted By"]}
         rows={tasks.map(t => [
-          t.title || "—",
-          t.type || "—",
-          t.offering || "—",
-          t.wanting || "—",
-          <Badge v={t.status} />,
-          t.user_name || "—",
-        ])}
+          (t.title as string) || "â€”",
+          (t.type as string) || "â€”",
+          (t.offering as string) || "â€”",
+          (t.wanting as string) || "â€”",
+          <Badge v={t.status as string} />,
+          (t.user_name as string) || "â€”",
+        ]) as (string | number | React.ReactNode)[][]}
         empty="tasks"
       />
     )
@@ -161,12 +161,12 @@ export default function AdminDashboard() {
         title="All Sessions"
         headers={["Session", "Participants", "Messages", "Status", "Created"]}
         rows={sessions.map(s => [
-          s.task_title || s.id,
-          s.participants?.length ?? 0,
-          s.message_count ?? 0,
-          <Badge v={s.status} />,
-          s.created_at ? new Date(s.created_at).toLocaleDateString() : "—",
-        ])}
+          (s.task_title as string) || (s.id as string),
+          ((s.participants as any[])?.length ?? 0),
+          (s.message_count as number) ?? 0,
+          <Badge v={s.status as string} />,
+          s.created_at ? new Date(s.created_at as string).toLocaleDateString() : "â€”",
+        ]) as (string | number | React.ReactNode)[][]}
         empty="sessions"
       />
     )
@@ -178,12 +178,12 @@ export default function AdminDashboard() {
         title="Reviews & Payments"
         headers={["Reviewer", "Reviewed", "Rating", "Comment", "Date"]}
         rows={reviews.map(r => [
-          r.reviewer,
-          r.reviewed,
-          r.rating ? `${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}` : "—",
-          r.comment || "—",
-          r.created_at ? new Date(r.created_at).toLocaleDateString() : "—",
-        ])}
+          r.reviewer as string,
+          r.reviewed as string,
+          r.rating ? `${"â˜…".repeat(r.rating as number)}${"â˜†".repeat(5 - (r.rating as number))}` : "â€”",
+          (r.comment as string) || "â€”",
+          r.created_at ? new Date(r.created_at as string).toLocaleDateString() : "â€”",
+        ]) as (string | number | React.ReactNode)[][]}
         empty="reviews"
       />
     )
@@ -211,9 +211,9 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground flex">
 
-      {/* ════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           SIDEBAR
-      ════════════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <motion.aside
         initial={false}
         animate={{ width: sidebar ? 220 : 0, opacity: sidebar ? 1 : 0 }}
@@ -284,12 +284,12 @@ export default function AdminDashboard() {
         </div>
       </motion.aside>
 
-      {/* ════════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           MAIN COLUMN
-      ════════════════════════════════════════════ */}
+      â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
 
-        {/* ── Top bar ─────────────────────────────────────────── */}
+        {/* â”€â”€ Top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <header className="sticky top-0 z-30 h-16 border-b border-border bg-background/95 backdrop-blur-sm flex items-center gap-4 px-6">
 
           {/* Hamburger */}
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2 flex-1 max-w-xs ml-4">
             <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <input
-              placeholder="Search anything…"
+              placeholder="Search anythingâ€¦"
               className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0"
             />
           </div>
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
             {loading ? (
               <div className="flex items-center justify-center py-24 gap-3 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm">Loading real data…</span>
+                <span className="text-sm">Loading real dataâ€¦</span>
               </div>
             ) : (
               <AnimatePresence mode="wait">
@@ -455,7 +455,7 @@ export default function AdminDashboard() {
                               <Icon className="h-4 w-4 text-primary" />
                             </div>
                             <p className="text-sm font-semibold text-foreground">{label}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">View →</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">View â†’</p>
                           </motion.button>
                         ))}
                       </div>
@@ -485,7 +485,7 @@ export default function AdminDashboard() {
                         <div className="h-px bg-border" />
                         <div>
                           <p className="text-sm font-semibold text-foreground">Department</p>
-                          <p className="text-xs text-muted-foreground mt-1">{adminSession.department || "—"}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{adminSession.department || "â€”"}</p>
                         </div>
                         <div className="h-px bg-border" />
                         <button onClick={handleLogout}
@@ -506,7 +506,7 @@ export default function AdminDashboard() {
   )
 }
 
-// ── Reusable Table ─────────────────────────────────────────────────────────────
+// â”€â”€ Reusable Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Table({ title, headers, rows, empty }: {
   title: string
   headers: string[]

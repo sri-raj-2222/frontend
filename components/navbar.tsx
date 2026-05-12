@@ -1,4 +1,4 @@
-import { useAuth } from "@/contexts/auth-context"
+﻿import { useAuth } from "@/contexts/auth-context"
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import { useState, useRef, useEffect } from "react"
 import { ModeToggle } from "@/components/ui/mode-toggle"
@@ -93,7 +93,7 @@ export function Navbar() {
     // Load initial data
     Promise.all([fetchNotifications(), fetchRooms()])
 
-    // Supabase Realtime � new notification inserted for this user
+    // Supabase Realtime ï¿½ new notification inserted for this user
     const channel = supabase
       .channel(`notifications:${CURRENT_USER_ID}`)
       .on('postgres_changes', {
@@ -107,7 +107,7 @@ export function Navbar() {
       })
       .subscribe()
 
-    // Socket listeners � only attach if socket is ready (provided by SocketContext)
+    // Socket listeners ï¿½ only attach if socket is ready (provided by SocketContext)
     if (!socket) return () => { supabase.removeChannel(channel) }
 
     const onRequestNew = (data: Notification) => {
@@ -124,13 +124,13 @@ export function Navbar() {
       setNotifications(prev => [{
         id: Date.now().toString(),
         type: 'request_accepted',
-        message: `?? Match confirmed! "${data.taskTitle}" � Opening chat...`,
+        message: `?? Match confirmed! "${data.taskTitle}" ï¿½ Opening chat...`,
         is_read: false,
         created_at: new Date().toISOString()
       } as unknown as Notification, ...prev])
       setUnreadCount(prev => prev + 1)
       fetchRooms()
-      // Use React Router navigate � no full reload, no new tab
+      // Use React Router navigate ï¿½ no full reload, no new tab
       navigate(`/chat?room=${data.roomId}`)
     }
 
@@ -166,7 +166,7 @@ export function Navbar() {
 
     try {
       if (type === 'match_request') {
-        // Match request � handled by local Express
+        // Match request ï¿½ handled by local Express
         const res = await fetch(`http://localhost:5000/api/match-requests/${referenceId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -198,7 +198,7 @@ export function Navbar() {
             await supabase.from('tasks').update({ status: 'matched', assigned_to: request.requester_id }).eq('id', request.task_id)
           }
 
-          // 2. Fetch requester name � try profiles first, then local DB
+          // 2. Fetch requester name ï¿½ try profiles first, then local DB
           let requesterName = ''
           try {
             const { data: profile } = await supabase
@@ -230,7 +230,7 @@ export function Navbar() {
           roomId = existingRooms?.[0]?.id ?? null
 
           if (!roomId) {
-            // Create room in Supabase (no metadata column � doesn't exist in schema)
+            // Create room in Supabase (no metadata column ï¿½ doesn't exist in schema)
             const { data: newRoom, error: roomError } = await supabase
               .from('chat_rooms')
               .insert({
@@ -373,7 +373,7 @@ export function Navbar() {
                   },
                   {
                     label: "Project Composite",
-                    description: "Post a project, define roles, build your team.\nYou pay credits � contributors earn them.",
+                    description: "Post a project, define roles, build your team.\nYou pay credits ï¿½ contributors earn them.",
                     icon: Workflow,
                     href: "/tasks/project/mine"
                   }
@@ -558,14 +558,14 @@ export function Navbar() {
                               {(n.type === 'request_new' || n.type === 'broadcast_request' || n.type === 'task_request') && (
                                 <div className="flex gap-2">
                                   <Button
-                                    onClick={() => handleAction(n.id, n.data?.request_id || n.reference_id, n.data?.task_id || n.task_id, 'accepted', n.type)}
+                                    onClick={() => handleAction(n.id, (n.data?.request_id as string) || n.reference_id, (n.data?.task_id as string) || n.task_id, 'accepted', n.type)}
                                     className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground font-bold text-[10px] uppercase tracking-widest"
                                   >
                                     Accept
                                   </Button>
                                   <Button
                                     variant="ghost"
-                                    onClick={() => handleAction(n.id, n.data?.request_id || n.reference_id, n.data?.task_id || n.task_id, 'declined', n.type)}
+                                    onClick={() => handleAction(n.id, (n.data?.request_id as string) || n.reference_id, (n.data?.task_id as string) || n.task_id, 'declined', n.type)}
                                     className="flex-1 h-10 rounded-xl bg-secondary text-foreground font-bold text-[10px] uppercase tracking-widest"
                                   >
                                     Decline

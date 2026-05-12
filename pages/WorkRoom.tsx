@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+﻿import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -52,7 +52,7 @@ export default function WorkRoom() {
         fetch(`${API}/api/projects/${projectId}/room`),
         fetch(`${API}/api/projects/${projectId}`)
       ])
-      if (!roomRes.ok) { setLoadError("Workspace not ready yet — the team hasn't been assembled."); return }
+      if (!roomRes.ok) { setLoadError("Workspace not ready yet â€” the team hasn't been assembled."); return }
       const roomData: ProjectRoom = await roomRes.json()
       setRoom(roomData)
       setMessages(roomData.messages || [])
@@ -314,8 +314,8 @@ export default function WorkRoom() {
               <div className="min-w-0">
                 <h3 className="font-black text-sm leading-tight truncate">{room.title}</h3>
                 <p className="text-[9px] font-black text-primary/70 uppercase tracking-widest">
-                  Group Workspace · {participants.length} member{participants.length !== 1 ? 's' : ''}
-                  {isCompleted && ' · ✅ Completed'}
+                  Group Workspace Â· {participants.length} member{participants.length !== 1 ? 's' : ''}
+                  {isCompleted && ' Â· âœ… Completed'}
                 </p>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function WorkRoom() {
                     <textarea
                       value={input} onChange={e => setInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                      rows={1} placeholder="Type a message… (Enter to send)"
+                      rows={1} placeholder="Type a messageâ€¦ (Enter to send)"
                       className="flex-1 px-4 py-3 rounded-2xl border border-border bg-card font-medium text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                       style={{ minHeight: 48, maxHeight: 120 }}
                     />
@@ -442,7 +442,7 @@ export default function WorkRoom() {
                   <Button onClick={generateAINotes} disabled={summarizing} variant="outline"
                     className="h-10 px-4 rounded-xl font-black text-xs gap-2 border-primary/30 text-primary hover:bg-primary/5">
                     {summarizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                    {summarizing ? 'Generating…' : 'AI Summarize'}
+                    {summarizing ? 'Generatingâ€¦' : 'AI Summarize'}
                   </Button>
                   <Button onClick={handleSaveNotes} className="h-10 px-4 rounded-xl font-black text-xs gap-2 shadow-none">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Save Notes
@@ -450,7 +450,7 @@ export default function WorkRoom() {
                 </div>
               </div>
               <textarea value={notes} onChange={e => setNotes(e.target.value)}
-                placeholder={"Project notes shared with the whole team…\n\nUse the AI button to auto-generate action items from your chat history."}
+                placeholder={"Project notes shared with the whole teamâ€¦\n\nUse the AI button to auto-generate action items from your chat history."}
                 readOnly={isCompleted}
                 className="flex-1 p-5 rounded-2xl border border-border bg-card font-medium text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all leading-relaxed"
               />

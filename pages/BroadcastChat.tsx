@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+ï»¿import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -312,7 +312,7 @@ export default function BroadcastChat() {
               <div className="min-w-0">
                 <h3 className="font-black text-sm leading-tight truncate">{room.title}</h3>
                 <p className="text-[9px] font-black text-primary/70 uppercase tracking-widest">
-                  Group Chat · {participants.length} member{participants.length !== 1 ? 's' : ''}
+                  Group Chat Â· {participants.length} member{participants.length !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -424,7 +424,7 @@ export default function BroadcastChat() {
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     rows={1}
-                    placeholder="Type a message… (Enter to send, Shift+Enter for new line)"
+                    placeholder="Type a messageâ€¦ (Enter to send, Shift+Enter for new line)"
                     className="flex-1 px-4 py-3 rounded-2xl border border-border bg-card font-medium text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all"
                     style={{ minHeight: 48, maxHeight: 120 }}
                   />
@@ -460,7 +460,7 @@ export default function BroadcastChat() {
                     {summarizing
                       ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       : <Sparkles className="h-3.5 w-3.5" />}
-                    {summarizing ? 'Generating…' : 'Generate from Chat'}
+                    {summarizing ? 'Generatingâ€¦' : 'Generate from Chat'}
                   </Button>
                   <Button
                     onClick={handleSaveNotes}
@@ -474,7 +474,7 @@ export default function BroadcastChat() {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder={
-                  "Start typing class notes here…\n\nAll participants can view and edit these notes.\nUse the AI button to auto-generate structured notes from your chat history."
+                  "Start typing class notes hereâ€¦\n\nAll participants can view and edit these notes.\nUse the AI button to auto-generate structured notes from your chat history."
                 }
                 className="flex-1 p-5 rounded-2xl border border-border bg-card font-medium text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary transition-all leading-relaxed"
               />

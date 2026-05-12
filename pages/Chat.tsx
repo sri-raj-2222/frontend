@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+﻿import { useState, useEffect, useRef, useCallback } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import {
   Send, MessageSquare, Search,
@@ -127,6 +127,8 @@ export default function Chat() {
             id: r.id,
             task_id: r.task_id,
             task_title: taskMap[r.task_id]?.title || 'Skill Exchange',
+            user_a: r.user_a,
+            user_b: r.user_b,
             participants: [r.user_a, r.user_b],
             participant_info: {
               [r.user_a]: {
@@ -141,9 +143,8 @@ export default function Chat() {
             status: r.status || 'active',
             connected: false,
             connection_clicks: [],
-            messages: [],
             created_at: r.created_at,
-            last_message: null,
+            last_message: undefined,
             isSb: true, // flag: use Supabase for messages
           })
         })
@@ -193,11 +194,11 @@ export default function Chat() {
   useEffect(() => {
     if (rooms.length === 0) return
     if (initialRoomId) {
-      // URL has a specific room � select it if found and not already active
+      // URL has a specific room ï¿½ select it if found and not already active
       const found = rooms.find(r => r.id === initialRoomId)
       if (found && activeRoom?.id !== found.id) setActiveRoom(found)
     } else if (!activeRoom) {
-      // No specific room and nothing selected � auto-open first room on desktop
+      // No specific room and nothing selected ï¿½ auto-open first room on desktop
       setActiveRoom(rooms[0])
     }
   }, [rooms]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -350,7 +351,7 @@ export default function Chat() {
     setAiError(null)
 
     try {
-      // Always fetch the full chat history � used in BOTH Polish and Generate modes
+      // Always fetch the full chat history ï¿½ used in BOTH Polish and Generate modes
       // so the AI can read the actual conversation regardless of existing notes
       let freshMessages = messages
       if (isSbRoom) {
@@ -407,7 +408,7 @@ export default function Chat() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'AI request failed' }))
         const msg = res.status === 429
-          ? 'Rate limit reached � wait 30 seconds and try again.'
+          ? 'Rate limit reached ï¿½ wait 30 seconds and try again.'
           : res.status === 503
             ? 'AI is not configured on the server. Please check the GROQ_API_KEY.'
             : (err.error || 'AI request failed')
@@ -834,7 +835,7 @@ export default function Chat() {
                                 <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI � Welcome Message</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI ï¿½ Welcome Message</span>
                               </div>
                               {/* Body */}
                               <div className="px-6 py-5 bg-gradient-to-br from-primary/5 to-background">
@@ -955,7 +956,7 @@ export default function Chat() {
                             <Sparkles className="h-4 w-4" />
                           </motion.span>
                           {summarizing
-                            ? "AI Working�"
+                            ? "AI Workingï¿½"
                             : notes.trim()
                               ? "Polish Notes"
                               : "Generate from Chat"}

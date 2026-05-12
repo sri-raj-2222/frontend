@@ -1,4 +1,4 @@
-import { useState, useId } from "react"
+ï»¿import { useState, useId } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { GetStartedButton } from "@/components/ui/get-started-button"
@@ -88,7 +88,7 @@ export default function AuthDialog({
 
           if (adminRes.ok) {
             const adminData = await adminRes.json()
-            // ? Admin credentials matched — set session and go to admin panel
+            // ? Admin credentials matched â€” set session and go to admin panel
             localStorage.setItem('admin_session', JSON.stringify(adminData.admin))
             setOpen(false)
             navigate('/admin', { replace: true })
@@ -96,7 +96,7 @@ export default function AuthDialog({
           }
           // If adminRes is 401 (wrong creds for admin), fall through to user login
         } catch {
-          // Server might not be running — silently fall through to Supabase login
+          // Server might not be running â€” silently fall through to Supabase login
         }
 
         // Step 2: Regular Supabase user login
@@ -120,7 +120,7 @@ export default function AuthDialog({
               return
             }
           } catch {
-            // Server offline — fail open (don't block login if server unreachable)
+            // Server offline â€” fail open (don't block login if server unreachable)
           }
         }
 

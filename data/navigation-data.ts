@@ -1,4 +1,4 @@
-export type NavSubLink = {
+﻿export type NavSubLink = {
   label: string;
   href: string;
 };

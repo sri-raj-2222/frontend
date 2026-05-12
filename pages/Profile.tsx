@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
 import {
@@ -202,11 +202,11 @@ export default function Profile() {
 
   const memberSince = profile
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-    : '—'
+    : 'â€”'
 
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : profile?.rating ? profile.rating.toFixed(1) : '—'
+    : profile?.rating ? profile.rating.toFixed(1) : 'â€”'
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center">
@@ -224,7 +224,7 @@ export default function Profile() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-6 py-10 mt-16 space-y-6">
 
-        {/* ── PROFILE CARD ─────────────────────────────────────────────── */}
+        {/* â”€â”€ PROFILE CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -298,7 +298,7 @@ export default function Profile() {
               </p>
             )}
 
-            {/* Meta row — location, member since, linkedin, portfolio */}
+            {/* Meta row â€” location, member since, linkedin, portfolio */}
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground mb-6">
               {profile.location && (
                 <span className="flex items-center gap-1.5">
@@ -356,7 +356,7 @@ export default function Profile() {
           </div>
         </motion.div>
 
-        {/* ── SKILLS GRID ──────────────────────────────────────────────── */}
+        {/* â”€â”€ SKILLS GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* Offering */}
           <motion.div
@@ -519,7 +519,7 @@ export default function Profile() {
           </motion.div>
         </div>
 
-        {/* ── REVIEWS ──────────────────────────────────────────────────── */}
+        {/* â”€â”€ REVIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

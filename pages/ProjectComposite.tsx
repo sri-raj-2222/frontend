@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -332,7 +332,7 @@ export default function ProjectComposite() {
                       >
                         <div className="min-w-0">
                           <p className="font-semibold text-sm truncate">{p.title}</p>
-                          <p className="text-xs text-muted-foreground">{myRole?.role_name || 'Contributor'} · {p.total_credits} cr pool</p>
+                          <p className="text-xs text-muted-foreground">{myRole?.role_name || 'Contributor'} Â· {p.total_credits} cr pool</p>
                         </div>
                         <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md border shrink-0", STATUS_BADGE[p.status] || STATUS_BADGE.open)}>
                           {p.status}
@@ -347,7 +347,7 @@ export default function ProjectComposite() {
           </div>
         )}
       </main>
-      {/* Post-Project Modal — styled like SkillIntake */}
+      {/* Post-Project Modal â€” styled like SkillIntake */}
       <AnimatePresence>
         {showPanel && (
           <div className="fixed inset-0 z-[150] bg-background/80 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto">
@@ -370,7 +370,7 @@ export default function ProjectComposite() {
                     </div>
                     <h2 className="text-3xl font-black mb-3">Project Posted!</h2>
                     <p className="text-muted-foreground font-medium max-w-xs mx-auto">
-                      Your project is live. Contributors will be notified now…
+                      Your project is live. Contributors will be notified nowâ€¦
                     </p>
                   </motion.div>
                 ) : (
@@ -410,7 +410,7 @@ export default function ProjectComposite() {
                       <textarea
                         value={panelDesc}
                         onChange={e => setPanelDesc(e.target.value)}
-                        placeholder="Describe scope, goals, and what contributors will work on…"
+                        placeholder="Describe scope, goals, and what contributors will work onâ€¦"
                         className="w-full px-6 py-4 rounded-[24px] border border-border bg-secondary/20 text-sm font-bold shadow-inner resize-none focus:outline-none focus:border-primary/40 min-h-[96px]"
                       />
                     </div>
@@ -488,8 +488,8 @@ export default function ProjectComposite() {
                       className="w-full h-16 rounded-[28px] bg-foreground text-background font-black text-base shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
                     >
                       {panelPosting
-                        ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Posting…</>
-                        : "Confirm & Post Project →"}
+                        ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Postingâ€¦</>
+                        : "Confirm & Post Project â†’"}
                     </Button>
 
                     <button

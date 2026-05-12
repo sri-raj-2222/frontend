@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   CheckCircle2, Inbox, Send, MessageSquare, Clock, XCircle
@@ -72,7 +72,7 @@ export default function MyActivity() {
         }
       } catch { /* server may be offline */ }
 
-      // -- 2. Supabase task_requests (flat � no FK joins) ---------------------
+      // -- 2. Supabase task_requests (flat ï¿½ no FK joins) ---------------------
       const { data: sbReqs } = await supabase
         .from('task_requests')
         .select('id, task_id, requester_id, owner_id, status, created_at')
@@ -196,7 +196,7 @@ export default function MyActivity() {
         }
 
         const room = data?.room
-        addNotification('Request accepted! Opening chat�', 'success')
+        addNotification('Request accepted! Opening chatï¿½', 'success')
         navigate(room?.id ? `/chat?room=${room.id}` : '/chat')
         return
       }
@@ -234,7 +234,7 @@ export default function MyActivity() {
       }
 
       if (!roomId) {
-        // Create in Supabase (no metadata column � doesn't exist in schema)
+        // Create in Supabase (no metadata column ï¿½ doesn't exist in schema)
         const { data: newRoom, error: roomError } = await supabase
           .from('chat_rooms')
           .insert({
@@ -280,7 +280,7 @@ export default function MyActivity() {
         console.warn('accept-and-notify failed:', errData.error)
       }
 
-      addNotification('Request accepted! Opening chat�', 'success')
+      addNotification('Request accepted! Opening chatï¿½', 'success')
       navigate(roomId ? `/chat?room=${roomId}` : '/chat')
     } catch (err) {
       console.error("Accept Flow Error:", err)

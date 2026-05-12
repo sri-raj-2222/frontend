@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Flag, X, ChevronRight, ChevronLeft, AlertTriangle,
@@ -366,7 +366,7 @@ export default function ReportUserModal({
                   className="rounded-xl h-9 px-6 text-xs font-bold uppercase tracking-widest bg-destructive hover:bg-destructive/90 flex items-center gap-1.5"
                 >
                   {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Flag className="h-3.5 w-3.5" />}
-                  {submitting ? 'Submitting�' : 'Submit Report'}
+                  {submitting ? 'Submitting…' : 'Submit Report'}
                 </Button>
               )}
             </div>

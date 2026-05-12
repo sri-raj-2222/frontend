@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
@@ -35,7 +35,7 @@ export default function AdminLogin() {
       // Store session in localStorage
       localStorage.setItem("admin_session", JSON.stringify(data.admin))
 
-      // ✅ Land directly on admin dashboard
+      // âœ… Land directly on admin dashboard
       navigate("/admin", { replace: true })
 
     } catch {
@@ -65,7 +65,7 @@ export default function AdminLogin() {
               <Shield className="h-7 w-7 text-primary-foreground" />
             </motion.div>
             <h1 className="text-xl font-bold text-foreground">Admin Portal</h1>
-            <p className="text-sm text-muted-foreground mt-1">ShareSphere — Restricted Access</p>
+            <p className="text-sm text-muted-foreground mt-1">ShareSphere â€” Restricted Access</p>
           </div>
 
           {/* Error banner */}
@@ -111,7 +111,7 @@ export default function AdminLogin() {
                   type={showPw ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   required
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                 />
@@ -155,7 +155,7 @@ export default function AdminLogin() {
           {/* Back link */}
           <p className="text-center mt-5">
             <a href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              ← Return to ShareSphere
+              â† Return to ShareSphere
             </a>
           </p>
         </div>

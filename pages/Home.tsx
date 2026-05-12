@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+﻿import { motion } from "framer-motion"
 import { 
   Zap, 
   Shield, 
@@ -176,7 +176,7 @@ export default function Home() {
           </div>
 
           <div className="pt-12 border-t border-slim border-border flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <p>© 2024 ShareSphere Inc. All rights reserved.</p>
+            <p>Â© 2024 ShareSphere Inc. All rights reserved.</p>
             <div className="flex gap-8">
               <a href="#" className="hover:text-primary transition-colors">Privacy</a>
               <a href="#" className="hover:text-primary transition-colors">Terms</a>

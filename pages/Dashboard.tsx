@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+﻿import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Zap,
@@ -102,7 +102,7 @@ export default function Dashboard() {
         stats: { pending: 0, accepted: 0, declined: 0 }
       }))
 
-      // 3. Merge � local DB takes priority (has request stats), Supabase fills missing
+      // 3. Merge — local DB takes priority (has request stats), Supabase fills missing
       const merged = [...localPosts]
       const localIds = new Set(localPosts.map(p => p.id))
       supabasePosts.forEach(p => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+﻿import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Flag, Search, Filter, RefreshCw, X,
@@ -9,7 +9,7 @@ import {
 
 const API = "http://localhost:5000"
 
-// ── Shared types ──────────────────────────────────────────────────────────────
+// â”€â”€ Shared types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface AdminSession { id?: string; email?: string; name?: string; role?: string }
 interface UserProfile {
   profile_pic?: string | null; name?: string; email?: string; status?: string
@@ -42,7 +42,7 @@ interface ReportData {
   reporterFiledCount: number
 }
 
-// ── User Profile Modal ────────────────────────────────────────────────────────
+// â”€â”€ User Profile Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => void }) {
   const [data, setData] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -84,7 +84,7 @@ function UserProfileModal({ userId, onClose }: { userId: string; onClose: () => 
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: 'Rating', value: data.rating ?? '—' },
+                  { label: 'Rating', value: data.rating ?? 'â€”' },
                   { label: 'Sessions', value: data.sessions_count ?? 0 },
                   { label: 'Reports', value: data.reports_count ?? 0 },
                   { label: 'Warnings', value: data.warning_count ?? 0 },
@@ -131,8 +131,15 @@ const ACTION_CONFIGS = [
   { type: "permanent_ban", label: "Permanent Ban", icon: ShieldX, cls: "border-destructive/30 text-destructive hover:bg-destructive/10", duration: false },
 ]
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+function fmtDate(d: string | number | Date | undefined | null) {
+  if (!d) return "â€”"
+  try {
+    const date = new Date(d)
+    if (isNaN(date.getTime())) return "â€”"
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+  } catch {
+    return "â€”"
+  }
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -156,7 +163,7 @@ function FlagIcon({ color, label }: { color: string; label: string }) {
 }
 
 function UserChip({ profile, flagCount = 0, onClick }: { profile: ReportUser | undefined; flagCount?: number; onClick?: () => void }) {
-  if (!profile) return <span className="text-muted-foreground text-xs">—</span>
+  if (!profile) return <span className="text-muted-foreground text-xs">â€”</span>
   const flagColor = flagCount >= 3 ? 'red' : flagCount >= 1 ? 'yellow' : 'none'
   const flagLabel = flagCount >= 3 ? `${flagCount} reports` : flagCount >= 1 ? `${flagCount} report` : ''
   return (
@@ -169,7 +176,7 @@ function UserChip({ profile, flagCount = 0, onClick }: { profile: ReportUser | u
       }
       <div>
         <div className="flex items-center gap-1.5">
-          <p className="text-xs font-semibold text-foreground leading-tight">{profile.name || "—"}</p>
+          <p className="text-xs font-semibold text-foreground leading-tight">{profile.name || "â€”"}</p>
           {onClick && <ExternalLink className="h-2.5 w-2.5 text-muted-foreground/50" />}
         </div>
         <p className="text-[10px] text-muted-foreground leading-tight truncate max-w-[120px]">{profile.email}</p>
@@ -179,7 +186,7 @@ function UserChip({ profile, flagCount = 0, onClick }: { profile: ReportUser | u
   )
 }
 
-// ── Detail + Action Panel ─────────────────────────────────────────────────────
+// â”€â”€ Detail + Action Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
   reportId: string; adminSession: AdminSession; onBack: () => void; onActionDone: () => void
 }) {
@@ -228,13 +235,13 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
         setActionMsg({ text: res.error || "Failed to submit action.", ok: false })
       }
     } catch {
-      setActionMsg({ text: "Network error — please check the server and try again.", ok: false })
+      setActionMsg({ text: "Network error â€” please check the server and try again.", ok: false })
     } finally { setSubmitting(false) }
   }
 
   if (loading) return (
     <div className="flex items-center justify-center py-24 gap-3 text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin" /><span className="text-sm">Loading report…</span>
+      <Loader2 className="h-5 w-5 animate-spin" /><span className="text-sm">Loading reportâ€¦</span>
     </div>
   )
 
@@ -267,7 +274,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
         <div className="flex items-center gap-3 p-3.5 rounded-xl bg-destructive/5 border border-destructive/20">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
           <p className="text-sm text-destructive font-semibold">
-            {distinctReporterCount} distinct reporters — review recommended
+            {distinctReporterCount} distinct reporters â€” review recommended
           </p>
         </div>
       )}
@@ -276,10 +283,10 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
         {/* Reporter */}
         <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reporter</p>
-          <UserChip profile={report.reporter} onClick={() => setProfileModalId(report.reporter_id)} />
+          <UserChip profile={report.reporter} onClick={() => setProfileModalId(report.reporter_id || null)} />
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[
-              { label: "Joined", value: report.reporter?.created_at ? fmtDate(report.reporter.created_at) : "—" },
+              { label: "Joined", value: fmtDate(report.reporter?.created_at) },
               { label: "Reports filed", value: reporterFiledCount },
               { label: "Warnings", value: report.reporter?.warning_count ?? 0 },
               { label: "Status", value: report.reporter?.status || "active" },
@@ -295,10 +302,10 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
         {/* Reported user */}
         <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reported User</p>
-          <UserChip profile={report.reported} flagCount={distinctReporterCount} onClick={() => setProfileModalId(report.reported_user_id)} />
+          <UserChip profile={report.reported} flagCount={distinctReporterCount} onClick={() => setProfileModalId(report.reported_user_id || null)} />
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[
-              { label: "Joined", value: report.reported?.created_at ? fmtDate(report.reported.created_at) : "—" },
+              { label: "Joined", value: fmtDate(report.reported?.created_at) },
               { label: "Total reports", value: distinctReporterCount },
               { label: "Warnings", value: report.reported?.warning_count ?? 0 },
               { label: "Status", value: report.reported?.status || "active" },
@@ -334,11 +341,11 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
           {showChat && (
             <div className="max-h-64 overflow-y-auto p-4 space-y-2">
               {chatHistory.map((msg: ChatMsg) => {
-                const isEvidence = report.evidence_message_ids?.includes(msg.id)
+                const isEvidence = msg.id && report.evidence_message_ids?.includes(msg.id)
                 return (
                   <div key={msg.id || msg.content} className={`px-3 py-2 rounded-xl text-xs ${isEvidence ? 'bg-destructive/10 border border-destructive/30' : 'bg-secondary/30'}`}>
                     <span className={`font-bold mr-2 ${isEvidence ? 'text-destructive' : 'text-primary'}`}>
-                      {msg.sender_name || 'User'}{isEvidence && ' 🚩'}
+                      {msg.sender_name || 'User'}{isEvidence && ' ðŸš©'}
                     </span>
                     <span className="text-foreground/80">{msg.content}</span>
                   </div>
@@ -383,7 +390,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
               <div key={a.id} className="px-3 py-2 rounded-xl bg-secondary/30 space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-foreground capitalize">{a.action_type.replace("_", " ")}</span>
-                  {a.duration_days && <span className="text-[10px] text-muted-foreground">— {a.duration_days} days</span>}
+                  {a.duration_days && <span className="text-[10px] text-muted-foreground">â€” {a.duration_days} days</span>}
                   <span className="ml-auto text-[10px] text-muted-foreground">{fmtDate(a.created_at)}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground italic">"{a.admin_note}"</p>
@@ -436,7 +443,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
               <textarea
                 value={adminNote}
                 onChange={e => setAdminNote(e.target.value)}
-                placeholder="Required — describe the reason for this action for the audit log…"
+                placeholder="Required â€” describe the reason for this action for the audit logâ€¦"
                 className="w-full h-20 bg-secondary/30 border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary resize-none"
               />
             </div>
@@ -456,7 +463,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-            {submitting ? "Submitting…" : "Confirm Action"}
+            {submitting ? "Submittingâ€¦" : "Confirm Action"}
           </button>
         </div>
       ) : (
@@ -469,7 +476,7 @@ function ReportDetail({ reportId, adminSession, onBack, onActionDone }: {
   )
 }
 
-// ── Main Reports Panel ────────────────────────────────────────────────────────
+// â”€â”€ Main Reports Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ReportsPanel() {
   const [reports, setReports] = useState<ReportEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -553,7 +560,7 @@ export default function ReportsPanel() {
       <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-xl px-3 py-2">
         <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Search by reporter, reported user, or reason…"
+          placeholder="Search by reporter, reported user, or reasonâ€¦"
           className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1" />
         {search && <button onClick={() => setSearch("")}><X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" /></button>}
       </div>
@@ -597,7 +604,7 @@ export default function ReportsPanel() {
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-20 gap-3 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" /><span className="text-sm">Loading reports…</span>
+            <Loader2 className="h-5 w-5 animate-spin" /><span className="text-sm">Loading reportsâ€¦</span>
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 flex flex-col items-center gap-3 text-muted-foreground">
@@ -618,10 +625,10 @@ export default function ReportsPanel() {
                 {filtered.map((report, i) => (
                   <motion.tr key={report.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
                     className={`border-b border-border/50 hover:bg-secondary/20 transition-colors
-                      ${report.distinct_reporter_count >= 3 ? "bg-destructive/[0.02]" : ""}`}>
-                    <td className="px-4 py-3"><UserChip profile={report.reporter} onClick={() => setProfileModalId(report.reporter_id)} /></td>
+                      ${(report.distinct_reporter_count ?? 0) >= 3 ? "bg-destructive/[0.02]" : ""}`}>
+                    <td className="px-4 py-3"><UserChip profile={report.reporter} onClick={() => setProfileModalId(report.reporter_id || null)} /></td>
                     <td className="px-4 py-3">
-                      <UserChip profile={report.reported} flagCount={report.distinct_reporter_count} onClick={() => setProfileModalId(report.reported_user_id)} /></td>
+                      <UserChip profile={report.reported} flagCount={report.distinct_reporter_count} onClick={() => setProfileModalId(report.reported_user_id || null)} /></td>
                     <td className="px-4 py-3">
                       <span className="text-xs text-foreground font-medium">{report.reason_category}</span>
                     </td>
@@ -629,8 +636,8 @@ export default function ReportsPanel() {
                       <span className="text-xs text-muted-foreground whitespace-nowrap">{fmtDate(report.created_at)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs font-bold ${report.distinct_reporter_count >= 3 ? "text-destructive" : "text-muted-foreground"}`}>
-                        {report.distinct_reporter_count}
+                      <span className={`text-xs font-bold ${(report.distinct_reporter_count ?? 0) >= 3 ? "text-destructive" : "text-muted-foreground"}`}>
+                        {report.distinct_reporter_count ?? 0}
                       </span>
                     </td>
                     <td className="px-4 py-3"><StatusBadge status={report.status} /></td>
