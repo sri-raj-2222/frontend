@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import {
   Send, MessageSquare, Search,
@@ -23,7 +23,7 @@ import { io } from "socket.io-client"
 import type { Message, Room, ConnectionStage, Review } from "@/types"
 import { supabase } from "@/lib/supabase"
 
-const socket = io("http://localhost:5000")
+const socket = io("https://backend-a41z.onrender.com")
 
 
 export default function Chat() {
@@ -89,7 +89,7 @@ export default function Chat() {
 
     // 1. Try local Express DB
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
       if (res.ok) localRooms = await res.json()
     } catch { /* server may be offline */ }
 
@@ -165,7 +165,7 @@ export default function Chat() {
           .order('created_at', { ascending: true })
         setMessages(data || [])
       } else {
-        const res = await fetch(`http://localhost:5000/api/chat/rooms/${roomId}/messages`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${roomId}/messages`)
         const data = await res.json()
         setMessages(data || [])
       }
@@ -180,7 +180,7 @@ export default function Chat() {
         setStages(stages || [])
         setRoomReviews(reviews || [])
       } else {
-        const res = await fetch(`http://localhost:5000/api/connections/${roomId}/status`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${roomId}/status`)
         const data = await res.json()
         setStages(data.stages || [])
         setRoomReviews(data.reviews || [])
@@ -194,11 +194,11 @@ export default function Chat() {
   useEffect(() => {
     if (rooms.length === 0) return
     if (initialRoomId) {
-      // URL has a specific room ï¿½ select it if found and not already active
+      // URL has a specific room � select it if found and not already active
       const found = rooms.find(r => r.id === initialRoomId)
       if (found && activeRoom?.id !== found.id) setActiveRoom(found)
     } else if (!activeRoom) {
-      // No specific room and nothing selected ï¿½ auto-open first room on desktop
+      // No specific room and nothing selected � auto-open first room on desktop
       setActiveRoom(rooms[0])
     }
   }, [rooms]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -214,7 +214,7 @@ export default function Chat() {
     const interval = setInterval(async () => {
       attempts++
       try {
-        const res = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+        const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
         if (res.ok) {
           const freshRooms: Room[] = await res.json()
           const target = freshRooms.find(r => r.id === initialRoomId)
@@ -324,7 +324,7 @@ export default function Chat() {
   const handleSaveNotes = async () => {
     if (!activeRoom) return
     try {
-      const res = await fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes })
@@ -351,7 +351,7 @@ export default function Chat() {
     setAiError(null)
 
     try {
-      // Always fetch the full chat history ï¿½ used in BOTH Polish and Generate modes
+      // Always fetch the full chat history � used in BOTH Polish and Generate modes
       // so the AI can read the actual conversation regardless of existing notes
       let freshMessages = messages
       if (isSbRoom) {
@@ -395,7 +395,7 @@ export default function Chat() {
       // Send BOTH notes and chatHistory to the server in all cases.
       // Mode A (Polish): server will enrich notes WITH the chat context.
       // Mode B (Generate): server creates structured notes purely from chat.
-      const res = await fetch('http://localhost:5000/api/ai/analyze-notes', {
+      const res = await fetch('https://backend-a41z.onrender.com/api/ai/analyze-notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -408,7 +408,7 @@ export default function Chat() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'AI request failed' }))
         const msg = res.status === 429
-          ? 'Rate limit reached ï¿½ wait 30 seconds and try again.'
+          ? 'Rate limit reached � wait 30 seconds and try again.'
           : res.status === 503
             ? 'AI is not configured on the server. Please check the GROQ_API_KEY.'
             : (err.error || 'AI request failed')
@@ -420,7 +420,7 @@ export default function Chat() {
       setAiResult({ action: data.action, summary: data.summary })
 
       // Auto-save so both peers see the updated notes
-      fetch(`http://localhost:5000/api/chat/rooms/${activeRoom.id}/notes`, {
+      fetch(`https://backend-a41z.onrender.com/api/chat/rooms/${activeRoom.id}/notes`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: data.improved }),
@@ -456,7 +456,7 @@ export default function Chat() {
         })
         loadRoomStatus(activeRoom.id, true)
       } else {
-        const res = await fetch(`http://localhost:5000/api/connections/${activeRoom.id}/confirm`, {
+        const res = await fetch(`https://backend-a41z.onrender.com/api/connections/${activeRoom.id}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -482,7 +482,7 @@ export default function Chat() {
     if (!partnerId) { console.error('Could not resolve partner ID'); return }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/reviews`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -517,7 +517,7 @@ export default function Chat() {
   const handleRaiseDispute = async () => {
     if (!activeRoom || !user) return
     try {
-      const res = await fetch(`http://localhost:5000/api/disputes`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/disputes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -543,7 +543,7 @@ export default function Chat() {
     if (!uploadData.title || !user || !activeRoom) return
     setUploading(true)
     try {
-      const res = await fetch('http://localhost:5000/api/notes/upload', {
+      const res = await fetch('https://backend-a41z.onrender.com/api/notes/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -835,7 +835,7 @@ export default function Chat() {
                                 <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
                                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                                 </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI ï¿½ Welcome Message</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">ShareSphere AI � Welcome Message</span>
                               </div>
                               {/* Body */}
                               <div className="px-6 py-5 bg-gradient-to-br from-primary/5 to-background">
@@ -956,7 +956,7 @@ export default function Chat() {
                             <Sparkles className="h-4 w-4" />
                           </motion.span>
                           {summarizing
-                            ? "AI Workingï¿½"
+                            ? "AI Working�"
                             : notes.trim()
                               ? "Polish Notes"
                               : "Generate from Chat"}
@@ -1364,3 +1364,4 @@ export default function Chat() {
     </div>
   )
 }
+

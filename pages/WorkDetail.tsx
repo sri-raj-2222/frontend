@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface ProjectRole { id: string; name: string; skills: string[]; credits: number; filled: boolean }
 interface ProjectMember { user_id: string; user_name: string; user_avatar: string | null; role_name: string; credits_allocated: number }
@@ -152,10 +152,10 @@ export default function WorkDetail() {
               onClick={e => e.stopPropagation()}
             >
               <h3 className="text-lg font-bold mb-1">Request to Join</h3>
-              <p className="text-sm text-muted-foreground mb-4">Applying for: <span className="font-semibold text-foreground">{requestingRole.name}</span> Â· {requestingRole.credits} credits</p>
+              <p className="text-sm text-muted-foreground mb-4">Applying for: <span className="font-semibold text-foreground">{requestingRole.name}</span> · {requestingRole.credits} credits</p>
               <textarea
                 value={requestMsg} onChange={e => setRequestMsg(e.target.value)}
-                placeholder="Tell the owner why you're a great fit for this roleâ€¦ (optional)"
+                placeholder="Tell the owner why you're a great fit for this role… (optional)"
                 className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary min-h-[100px] mb-4"
               />
               <div className="flex gap-3">
@@ -215,7 +215,7 @@ export default function WorkDetail() {
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-4 border-t border-border">
             <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5" /> {project.owner_name}</span>
-            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Min {project.min_team_size} members Â· {project.members.length} accepted</span>
+            <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Min {project.min_team_size} members · {project.members.length} accepted</span>
             {project.deadline && <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Due {new Date(project.deadline).toLocaleDateString()}</span>}
           </div>
 
@@ -272,7 +272,7 @@ export default function WorkDetail() {
                           : myRoleRequest.status === 'accepted' ? "bg-emerald-500/10 text-emerald-600"
                             : "bg-destructive/10 text-destructive"
                       )}>
-                        {myRoleRequest.status === 'pending' ? 'â³ Request Pending' : myRoleRequest.status}
+                        {myRoleRequest.status === 'pending' ? '⏳ Request Pending' : myRoleRequest.status}
                       </span>
                     )}
                   </div>
@@ -421,3 +421,4 @@ export default function WorkDetail() {
     </div>
   )
 }
+

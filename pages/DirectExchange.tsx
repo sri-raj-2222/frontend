@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, Sparkles, RefreshCcw, AlertCircle, Clock, CheckCircle2, MessageSquare, History, User2, Zap
@@ -75,7 +75,7 @@ export default function DirectExchange() {
         Return JSON ONLY:
         { "top_matches": [ { "task_id": "id", "reason": "why" } ] }
       `
-      const res = await fetch("http://localhost:5000/api/ai/recommend", {
+      const res = await fetch("https://backend-a41z.onrender.com/api/ai/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: geminiPrompt })
@@ -98,7 +98,7 @@ export default function DirectExchange() {
     if (!user?.id) return
     if (!silent) setLoading(true)
     try {
-      // Step 1 â€” load already-sent requests so buttons show correct state
+      // Step 1 — load already-sent requests so buttons show correct state
       const { data: myRequests } = await supabase
         .from('task_requests')
         .select('task_id')
@@ -106,15 +106,15 @@ export default function DirectExchange() {
         .in('status', ['pending', 'accepted'])
       if (myRequests) setRequestedTasks(myRequests.map((r: { task_id: string }) => r.task_id))
 
-      // Step 2 â€” server does the bilateral match:
-      //   Person A's offering  n  Person B's wanting  ? Ã˜
+      // Step 2 — server does the bilateral match:
+      //   Person A's offering  n  Person B's wanting  ? Ø
       //   AND
-      //   Person B's offering  n  Person A's wanting  ? Ã˜
+      //   Person B's offering  n  Person A's wanting  ? Ø
       //   ? only then recommend Person B to Person A (and vice-versa)
-      const recRes = await fetch(`http://localhost:5000/api/recommendations/${user.id}`)
+      const recRes = await fetch(`https://backend-a41z.onrender.com/api/recommendations/${user.id}`)
       const matched: Task[] = recRes.ok ? await recRes.json().catch(() => []) : []
 
-      // Step 3 â€” if SkillIntake passed an override skill, narrow further
+      // Step 3 — if SkillIntake passed an override skill, narrow further
       const filtered: Task[] = overrideWanting
         ? matched.filter((t: Task) => {
           const offers = (Array.isArray(t.offering) ? t.offering : [t.offering || ''])
@@ -128,7 +128,7 @@ export default function DirectExchange() {
 
       setTasks(filtered)
 
-      // Step 4 â€” AI picks the best 3 from the already bilateral-filtered pool
+      // Step 4 — AI picks the best 3 from the already bilateral-filtered pool
       if (filtered.length > 0) {
         // their wanting = what I offer | their offering = what I need
         const myOffers = Array.from(new Set(
@@ -153,11 +153,11 @@ export default function DirectExchange() {
     if (!silent) setLoading(true)
     try {
       // 1. Fetch Requests (Incoming/Outgoing)
-      const res = await fetch(`http://localhost:5000/api/user/${user.id}/requests`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/requests`)
       const data = await res.json()
 
       // 2. Fetch Own Posts
-      const postRes = await fetch(`http://localhost:5000/api/user/${user.id}/posts`)
+      const postRes = await fetch(`https://backend-a41z.onrender.com/api/user/${user.id}/posts`)
       const ownPosts = await postRes.json()
 
       const combined = [
@@ -176,7 +176,7 @@ export default function DirectExchange() {
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
 
-      const roomRes = await fetch(`http://localhost:5000/api/chat/rooms?user_id=${user.id}`)
+      const roomRes = await fetch(`https://backend-a41z.onrender.com/api/chat/rooms?user_id=${user.id}`)
       const rooms = await roomRes.json()
 
       const enriched = combined.map((item: ActivityItem) => {
@@ -253,11 +253,11 @@ export default function DirectExchange() {
   const handleRequest = async (task: Task) => {
     if (requestedTasks.includes(task.id)) return
 
-    // Step 1 â€” Disable the button immediately on click
+    // Step 1 — Disable the button immediately on click
     setRequestedTasks(prev => [...prev, task.id])
 
     try {
-      // Step 2 â€” Insert into task_requests
+      // Step 2 — Insert into task_requests
       const { data: reqData, error: reqError } = await supabase
         .from('task_requests')
         .insert({
@@ -275,13 +275,13 @@ export default function DirectExchange() {
         return
       }
 
-      // Step 3 â€” Update task status to 'requested'
+      // Step 3 — Update task status to 'requested'
       await supabase
         .from('tasks')
         .update({ status: 'requested' })
         .eq('id', task.id)
 
-      // Step 2 â€” Send Notification to Owner
+      // Step 2 — Send Notification to Owner
       const offering = Array.isArray(task.wanting) ? task.wanting.join(", ") : task.wanting
       const notificationMessage = `${user?.name || 'Someone'} wants to exchange ${offering} for your "${task.title}"`
 
@@ -324,7 +324,7 @@ export default function DirectExchange() {
 
   const handleUpdateStatus = async (item: ActivityItem, status: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/requests/${item.id}`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/requests/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
@@ -585,3 +585,4 @@ export default function DirectExchange() {
     </div>
   )
 }
+

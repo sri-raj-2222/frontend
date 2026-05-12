@@ -1,8 +1,8 @@
-﻿import { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Navigate } from "react-router-dom"
 import { Shield } from "lucide-react"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true)
@@ -36,7 +36,7 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
         <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center animate-pulse">
           <Shield className="h-6 w-6 text-primary-foreground" />
         </div>
-        <p className="text-sm text-muted-foreground animate-pulse">Verifying admin accessï¿½</p>
+        <p className="text-sm text-muted-foreground animate-pulse">Verifying admin access�</p>
       </div>
     )
   }
@@ -45,3 +45,4 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
 
   return <>{children}</>
 }
+

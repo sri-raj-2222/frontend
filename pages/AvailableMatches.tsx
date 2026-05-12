@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeftRight, RefreshCcw, AlertCircle, ChevronRight, Search, MessageSquare } from "lucide-react"
 import { Navbar } from "@/components/navbar"
@@ -27,7 +27,7 @@ export default function AvailableMatches() {
     if (!userId) return
     if (!silent) setLoading(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/matches/${userId}`)
+      const res = await fetch(`https://backend-a41z.onrender.com/api/matches/${userId}`)
       const data = await res.json()
       setCurrentUser(data.currentUser)
 
@@ -95,7 +95,7 @@ export default function AvailableMatches() {
       const offeringSkills = match.iOfferWhatTheyNeed.join(', ')
       const notificationMsg = `${user?.name || 'Someone'} wants to exchange ${offeringSkills} for your ${match.task?.title || 'task'}`
 
-      // 0 ï¿½ Ensure current user exists in `users` table (FK: task_requests.requester_id ? users.id)
+      // 0 � Ensure current user exists in `users` table (FK: task_requests.requester_id ? users.id)
       await supabase
         .from('users')
         .upsert(
@@ -103,7 +103,7 @@ export default function AvailableMatches() {
           { onConflict: 'id' }
         )
 
-      // 1 ï¿½ Check if a request already exists (prevent duplicate 409)
+      // 1 � Check if a request already exists (prevent duplicate 409)
       let requestId: string | null = null
       const { data: existing } = await supabase
         .from('task_requests')
@@ -114,12 +114,12 @@ export default function AvailableMatches() {
 
       if (existing) {
         requestId = existing.id
-        // Request already sent ï¿½ just notify sender and return
+        // Request already sent � just notify sender and return
         addNotification(`Request already sent to ${match.peer.name}!`, 'success')
         return
       }
 
-      // 2 ï¿½ No duplicate ? safely insert
+      // 2 � No duplicate ? safely insert
       const { data: newReq, error: insertErr } = await supabase
         .from('task_requests')
         .insert({
@@ -132,7 +132,7 @@ export default function AvailableMatches() {
         .single()
 
       if (insertErr) {
-        // Still got a conflict (race condition) ï¿½ fetch the existing row
+        // Still got a conflict (race condition) � fetch the existing row
         if (insertErr.code === '23505' || (insertErr as { status?: number }).status === 409) {
           const { data: fallback } = await supabase
             .from('task_requests')
@@ -148,7 +148,7 @@ export default function AvailableMatches() {
         requestId = newReq?.id ?? null
       }
 
-      // 3 ï¿½ Supabase notification (non-blocking)
+      // 3 � Supabase notification (non-blocking)
       if (requestId) {
         supabase
           .from('notifications')
@@ -171,8 +171,8 @@ export default function AvailableMatches() {
           })
       }
 
-      // 4 ï¿½ Ping Express server ? emits socket event to owner's room immediately
-      fetch('http://localhost:5000/api/tasks/null/request', {
+      // 4 � Ping Express server ? emits socket event to owner's room immediately
+      fetch('https://backend-a41z.onrender.com/api/tasks/null/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -292,7 +292,7 @@ export default function AvailableMatches() {
                           <div>
                             <h3 className="font-semibold text-sm tracking-tight leading-none mb-1">{match.peer.name}</h3>
                             <p className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                              JUST NOW ï¿½ <span className="text-emerald-500">{match.matchScore}% Match</span>
+                              JUST NOW � <span className="text-emerald-500">{match.matchScore}% Match</span>
                             </p>
                           </div>
                         </div>
@@ -355,3 +355,4 @@ export default function AvailableMatches() {
     </div>
   )
 }
+

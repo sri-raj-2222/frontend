@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './auth-context';
 import { NotificationToast, type NotificationType } from '@/components/ui/notification-toast';
@@ -55,7 +55,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     console.log('[SocketProvider] Initializing socket connection...');
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io('https://backend-a41z.onrender.com', {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
@@ -156,3 +156,4 @@ export const useSocket = () => {
   }
   return context;
 };
+

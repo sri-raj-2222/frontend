@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useSocket } from "@/contexts/socket-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface ProjectRole {
   id: string
@@ -132,7 +132,7 @@ export default function WorkFeed() {
           <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl border border-border w-fit">
             {([
               { id: 'browse', label: 'All Projects' },
-              { id: 'recent', label: `Recent  â€¢  ${recentProjects.length}` },
+              { id: 'recent', label: `Recent  •  ${recentProjects.length}` },
             ] as const).map(t => (
               <button
                 key={t.id}
@@ -331,3 +331,4 @@ function ProjectCard({
     </motion.div>
   )
 }
+

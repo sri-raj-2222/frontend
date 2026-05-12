@@ -1,4 +1,4 @@
-ï»¿import { useState, useId } from "react"
+import { useState, useId } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { GetStartedButton } from "@/components/ui/get-started-button"
@@ -80,7 +80,7 @@ export default function AuthDialog({
 
         // Step 1: Check if email + password matches an admin account
         try {
-          const adminRes = await fetch('http://localhost:5000/api/admin/login', {
+          const adminRes = await fetch('https://backend-a41z.onrender.com/api/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email.trim().toLowerCase(), password })
@@ -88,7 +88,7 @@ export default function AuthDialog({
 
           if (adminRes.ok) {
             const adminData = await adminRes.json()
-            // ? Admin credentials matched â€” set session and go to admin panel
+            // ? Admin credentials matched — set session and go to admin panel
             localStorage.setItem('admin_session', JSON.stringify(adminData.admin))
             setOpen(false)
             navigate('/admin', { replace: true })
@@ -96,7 +96,7 @@ export default function AuthDialog({
           }
           // If adminRes is 401 (wrong creds for admin), fall through to user login
         } catch {
-          // Server might not be running â€” silently fall through to Supabase login
+          // Server might not be running — silently fall through to Supabase login
         }
 
         // Step 2: Regular Supabase user login
@@ -107,7 +107,7 @@ export default function AuthDialog({
         const userId = loginData.user?.id
         if (userId) {
           try {
-            const banRes = await fetch(`http://localhost:5000/api/users/${userId}/ban-status`)
+            const banRes = await fetch(`https://backend-a41z.onrender.com/api/users/${userId}/ban-status`)
             const banData = await banRes.json()
             if (banData.banned) {
               // Sign them back out immediately so the session is not persisted
@@ -120,7 +120,7 @@ export default function AuthDialog({
               return
             }
           } catch {
-            // Server offline â€” fail open (don't block login if server unreachable)
+            // Server offline — fail open (don't block login if server unreachable)
           }
         }
 
@@ -259,3 +259,4 @@ export default function AuthDialog({
     </Dialog>
   )
 }
+

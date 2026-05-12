@@ -8,7 +8,7 @@ for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":5173 " ^| findstr "L
 timeout /t 1 /nobreak >nul
 
 :: Start Express backend in its own minimized window
-start "ShareSphere API :5000" /min cmd /k "cd /d "%~dp0server" && node server.js"
+start "ShareSphere API :5000" /min cmd /k "cd /d "%~dp0..\server" && node server.js"
 
 timeout /t 2 /nobreak >nul
 
@@ -19,7 +19,7 @@ timeout /t 4 /nobreak >nul
 
 echo.
 echo  ShareSphere is running!
-echo  Backend  -- http://localhost:5000
+echo  Backend  -- https://backend-a41z.onrender.com
 echo  Frontend -- http://localhost:5173
 echo.
 echo  Two minimized windows are keeping the servers alive.
@@ -27,3 +27,4 @@ echo  Close "ShareSphere API" or "ShareSphere UI" window to stop them.
 echo.
 start "" "http://localhost:5173"
 pause
+

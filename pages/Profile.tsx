@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { motion } from "framer-motion"
 import {
@@ -109,7 +109,7 @@ export default function Profile() {
       }
 
       try {
-        const aiRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/profile`)
+        const aiRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/profile`)
         const aiData = await aiRes.json()
         if (aiData?.id) {
           setProfile(prev => prev ? {
@@ -128,14 +128,14 @@ export default function Profile() {
       } catch { /* server may be offline */ }
 
       try {
-        const reviewsRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/reviews`)
+        const reviewsRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/reviews`)
         const reviewsData = await reviewsRes.json()
         if (Array.isArray(reviewsData)) setReviews(reviewsData)
       } catch { /* server may be offline */ }
 
       let skillsFetched = false
       try {
-        const skillRes = await fetch(`http://localhost:5000/api/user/${viewUserId}/skills`)
+        const skillRes = await fetch(`https://backend-a41z.onrender.com/api/user/${viewUserId}/skills`)
         const skillData = await skillRes.json()
         if (Array.isArray(skillData) && skillData.length > 0) {
           setOfferingSkills(skillData.filter((s: UserSkill) => s.skill_type === 'offering'))
@@ -165,7 +165,7 @@ export default function Profile() {
   useEffect(() => {
     if (viewUserId) {
       loadProfile()
-      fetch(`http://localhost:5000/api/users/${viewUserId}/flag-status`)
+      fetch(`https://backend-a41z.onrender.com/api/users/${viewUserId}/flag-status`)
         .then(r => r.json())
         .then(d => { if (d.level > 0) setFlagInfo(d) })
         .catch(() => { })
@@ -176,7 +176,7 @@ export default function Profile() {
     if (!newSkill.trim() || !authUser?.id) return
     setAddingSkill(true)
     try {
-      const res = await fetch(`http://localhost:5000/api/user/${authUser.id}/skills`, {
+      const res = await fetch(`https://backend-a41z.onrender.com/api/user/${authUser.id}/skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill_name: newSkill.trim(), skill_type: skillType })
@@ -194,7 +194,7 @@ export default function Profile() {
 
   const handleDeleteSkill = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/skills/${id}`, { method: "DELETE" })
+      const res = await fetch(`https://backend-a41z.onrender.com/api/skills/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error("Failed to delete skill")
       loadProfile(true)
     } catch (err) { console.error(err) }
@@ -202,11 +202,11 @@ export default function Profile() {
 
   const memberSince = profile
     ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-    : 'â€”'
+    : '—'
 
   const avgRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-    : profile?.rating ? profile.rating.toFixed(1) : 'â€”'
+    : profile?.rating ? profile.rating.toFixed(1) : '—'
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center">
@@ -224,7 +224,7 @@ export default function Profile() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-6 py-10 mt-16 space-y-6">
 
-        {/* â”€â”€ PROFILE CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── PROFILE CARD ─────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -298,7 +298,7 @@ export default function Profile() {
               </p>
             )}
 
-            {/* Meta row â€” location, member since, linkedin, portfolio */}
+            {/* Meta row — location, member since, linkedin, portfolio */}
             <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground mb-6">
               {profile.location && (
                 <span className="flex items-center gap-1.5">
@@ -356,7 +356,7 @@ export default function Profile() {
           </div>
         </motion.div>
 
-        {/* â”€â”€ SKILLS GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── SKILLS GRID ──────────────────────────────────────────────── */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* Offering */}
           <motion.div
@@ -519,7 +519,7 @@ export default function Profile() {
           </motion.div>
         </div>
 
-        {/* â”€â”€ REVIEWS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── REVIEWS ──────────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -604,3 +604,4 @@ export default function Profile() {
     </div>
   )
 }
+

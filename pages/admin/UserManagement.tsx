@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, ShieldCheck, Star, AlertTriangle, Eye, Ban,
@@ -9,10 +9,10 @@ import {
 } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 const PAGE_SIZE = 10
 
-// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Types ──────────────────────────────────────────────────────────────────────
 interface UserSkill { name: string; type: string }
 interface UserFeedback {
   id?: string; reviewer?: string; reviewer_name?: string
@@ -33,7 +33,7 @@ interface EnrichedUser {
   feedback: UserFeedback[]; reports: UserReport[]
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ────────────────────────────────────────────────────────────────────
 function timeAgo(d: string) {
   if (!d) return "Never"
   const diff = Date.now() - new Date(d).getTime()
@@ -46,7 +46,7 @@ function timeAgo(d: string) {
 }
 
 function fmtDate(d: string) {
-  if (!d) return "â€”"
+  if (!d) return "—"
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
@@ -64,7 +64,7 @@ function grad(id: string) {
   return GRAD[h % GRAD.length]
 }
 
-// â”€â”€ Reusable atoms â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Reusable atoms ─────────────────────────────────────────────────────────────
 function Avatar({ user, size = "md" }: { user: EnrichedUser; size?: "sm" | "md" | "lg" }) {
   const sz = { sm: "h-8 w-8 text-xs", md: "h-10 w-10 text-sm", lg: "h-16 w-16 text-xl" }[size]
   if (user.profile_pic)
@@ -106,7 +106,7 @@ function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1">
       <Star className={`h-3.5 w-3.5 ${rating > 0 ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />
-      <span className="text-sm font-medium text-foreground">{rating > 0 ? rating.toFixed(1) : "â€”"}</span>
+      <span className="text-sm font-medium text-foreground">{rating > 0 ? rating.toFixed(1) : "—"}</span>
     </div>
   )
 }
@@ -118,7 +118,7 @@ function SortIcon({ field, sortField, sortDir }: { field: string; sortField: str
     : <ChevronDown className="h-3 w-3 text-primary inline ml-1" />
 }
 
-// â”€â”€ Block Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Block Modal ────────────────────────────────────────────────────────────────
 function BlockModal({ user, onConfirm, onCancel, loading }: {
   user: EnrichedUser; onConfirm: () => void; onCancel: () => void; loading: boolean
 }) {
@@ -154,7 +154,7 @@ function BlockModal({ user, onConfirm, onCancel, loading }: {
   )
 }
 
-// â”€â”€ Verify Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Verify Modal ───────────────────────────────────────────────────────────────
 function VerifyModal({ user, onConfirm, onCancel, loading }: {
   user: EnrichedUser; onConfirm: () => void; onCancel: () => void; loading: boolean
 }) {
@@ -190,7 +190,7 @@ function VerifyModal({ user, onConfirm, onCancel, loading }: {
   )
 }
 
-// â”€â”€ Detail Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Detail Modal ───────────────────────────────────────────────────────────────
 function DetailModal({ user, onClose, onBlock, onVerify }: {
   user: EnrichedUser; onClose: () => void
   onBlock: (u: EnrichedUser) => void; onVerify: (u: EnrichedUser) => void
@@ -279,7 +279,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.14 }}>
 
-              {/* â”€ Profile â”€ */}
+              {/* ─ Profile ─ */}
               {tab === "profile" && (
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-3">
@@ -323,7 +323,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                 </div>
               )}
 
-              {/* â”€ Activity â”€ */}
+              {/* ─ Activity ─ */}
               {tab === "activity" && (
                 <div className="space-y-5">
                   <div className="grid grid-cols-3 gap-3">
@@ -365,12 +365,12 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                 </div>
               )}
 
-              {/* â”€ Ratings â”€ */}
+              {/* ─ Ratings ─ */}
               {tab === "ratings" && (
                 <div className="space-y-5">
                   <div className="flex items-center gap-6 p-4 bg-secondary/30 rounded-xl">
                     <div className="text-center shrink-0">
-                      <p className="text-4xl font-bold text-foreground">{user.rating > 0 ? user.rating.toFixed(1) : "â€”"}</p>
+                      <p className="text-4xl font-bold text-foreground">{user.rating > 0 ? user.rating.toFixed(1) : "—"}</p>
                       <div className="flex gap-0.5 justify-center mt-1">
                         {[1, 2, 3, 4, 5].map(s => (
                           <Star key={s} className={`h-3 w-3 ${s <= Math.round(user.rating) ? "text-amber-400 fill-amber-400" : "text-muted-foreground"}`} />
@@ -422,7 +422,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
                 </div>
               )}
 
-              {/* â”€ Reports â”€ */}
+              {/* ─ Reports ─ */}
               {tab === "reports" && (
                 <div className="space-y-3">
                   {user.reports_count === 0 ? (
@@ -462,7 +462,7 @@ function DetailModal({ user, onClose, onBlock, onVerify }: {
   )
 }
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main Component ─────────────────────────────────────────────────────────────
 export default function UserManagement() {
   const [users, setUsers] = useState<EnrichedUser[]>([])
   const [stats, setStats] = useState({ total: 0, active: 0, blocked: 0, verified: 0, suspicious: 0 })
@@ -482,7 +482,7 @@ export default function UserManagement() {
   const fetchUsers = useCallback(async () => {
     setLoading(true)
     try {
-      // Single call to the Express server â€” it fetches Supabase profiles,
+      // Single call to the Express server — it fetches Supabase profiles,
       // merges with seed / local-DB users, and enriches with activity data.
       const r = await fetch(`${API}/api/admin/users`)
       if (!r.ok) throw new Error(`Server returned ${r.status}`)
@@ -497,7 +497,7 @@ export default function UserManagement() {
         suspicious: d.suspicious_count || 0,
       })
     } catch (err) {
-      console.error("UserManagement: fetchUsers failed â€”", err)
+      console.error("UserManagement: fetchUsers failed —", err)
     } finally {
       setLoading(false)
     }
@@ -618,7 +618,7 @@ export default function UserManagement() {
             className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20">
             <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
             <p className="text-sm text-amber-400">
-              <span className="font-semibold">{stats.suspicious} user{stats.suspicious !== 1 ? "s" : ""}</span> flagged with multiple reports â€” review immediately.
+              <span className="font-semibold">{stats.suspicious} user{stats.suspicious !== 1 ? "s" : ""}</span> flagged with multiple reports — review immediately.
             </p>
           </motion.div>
         )}
@@ -629,7 +629,7 @@ export default function UserManagement() {
         <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-xl px-3 py-2 flex-1 min-w-48">
           <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search name, email, or skillâ€¦"
+            placeholder="Search name, email, or skill…"
             className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1 min-w-0" />
           {search && <button onClick={() => setSearch("")} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>}
         </div>
@@ -668,7 +668,7 @@ export default function UserManagement() {
         {loading ? (
           <div className="flex items-center justify-center py-20 gap-3 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Loading usersâ€¦</span>
+            <span className="text-sm">Loading users…</span>
           </div>
         ) : paginated.length === 0 ? (
           <div className="py-16 flex flex-col items-center gap-3 text-muted-foreground">
@@ -722,7 +722,7 @@ export default function UserManagement() {
                           </span>
                         ))}
                         {user.skills.length > 3 && <span className="px-1.5 py-0.5 rounded text-[10px] text-muted-foreground bg-secondary">+{user.skills.length - 3}</span>}
-                        {user.skills.length === 0 && <span className="text-xs text-muted-foreground">â€”</span>}
+                        {user.skills.length === 0 && <span className="text-xs text-muted-foreground">—</span>}
                       </div>
                     </td>
 
@@ -736,7 +736,7 @@ export default function UserManagement() {
                     <td className="px-4 py-3">
                       {user.verified
                         ? <span className="inline-flex items-center gap-1 text-xs text-blue-400"><ShieldCheck className="h-3.5 w-3.5" /> Yes</span>
-                        : <span className="text-xs text-muted-foreground">â€”</span>}
+                        : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
 
                     {/* Joined */}
@@ -775,7 +775,7 @@ export default function UserManagement() {
         {!loading && filtered.length > PAGE_SIZE && (
           <div className="px-5 py-3 border-t border-border flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
-              {(page - 1) * PAGE_SIZE + 1}â€“{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
             </p>
             <div className="flex items-center gap-2">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
@@ -808,3 +808,4 @@ export default function UserManagement() {
     </div>
   )
 }
+

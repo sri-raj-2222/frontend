@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/auth-context"
 import { cn } from "@/lib/utils"
 
-const API = "http://localhost:5000"
+const API = "https://backend-a41z.onrender.com"
 
 interface Role {
   id: string
@@ -243,7 +243,7 @@ export default function WorkPost() {
               <motion.div key="s2" initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-5">
                 <div>
                   <h2 className="text-lg font-bold mb-1">Review & Post</h2>
-                  <p className="text-xs text-muted-foreground">Your credits are held in escrow â€” released to each contributor when the project completes</p>
+                  <p className="text-xs text-muted-foreground">Your credits are held in escrow — released to each contributor when the project completes</p>
                 </div>
 
                 <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
@@ -305,7 +305,7 @@ export default function WorkPost() {
                   </Button>
                   <Button onClick={handlePost} disabled={!canPost || posting} className="flex-[2] h-11 rounded-xl font-semibold gap-2">
                     {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Workflow className="h-4 w-4" />}
-                    {posting ? "Postingâ€¦" : `Post & Escrow ${totalCredits} Credits`}
+                    {posting ? "Posting…" : `Post & Escrow ${totalCredits} Credits`}
                   </Button>
                 </div>
               </motion.div>
@@ -317,3 +317,4 @@ export default function WorkPost() {
     </div>
   )
 }
+
